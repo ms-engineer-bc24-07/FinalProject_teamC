@@ -5,6 +5,8 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+RUN pip install black isort flake8 pre-commit
+
 COPY . .
 
 EXPOSE 8000
