@@ -1,0 +1,23 @@
+.container {
+    padding: 8px 16px;
+}
+
+.row {
+    display: flex;
+    justify-content: space-between; 
+    align-items: center;
+}
+
+.label {
+    flex: 1;
+}
+
+.content {
+    flex-shrink: 0;
+}
+
+.divider {
+    margin-top: 8px;
+    background-color: #ddd;
+    height: 1px;
+}
