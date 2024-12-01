@@ -43,7 +43,7 @@ export default function DateTimePicker({ value, onChange }: DateTimePickerProps)
             >
             {Array.from({ length: 24 }, (_, i) =>
                 Array.from({ length: 4 }, (_, j) => (
-                <MenuItem key={`${i}-${j}`} value={`${i}:${j * 30}`}>{`${i}:${j * 30}`}</MenuItem>
+                <MenuItem key={`${i}-${j}`} value={`${i}:${j * 15}`}>{`${i}:${j * 15}`}</MenuItem>
                 ))
             )}
             </Select>

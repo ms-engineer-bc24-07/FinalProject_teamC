@@ -1,0 +1,13 @@
+.addButton {
+    background-color: #2196f3;
+    color: white; 
+    padding: 8px 16px; 
+    border-radius: 8px; 
+    width: 100%; 
+    font-size: 16px; 
+    font-weight: bold; 
+    text-transform: none; 
+    margin-top: 16px; 
+    transition: background-color 0.3s ease; 
+
+}

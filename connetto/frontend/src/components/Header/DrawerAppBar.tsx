@@ -13,6 +13,8 @@ import MenuIcon from '@mui/icons-material/Menu';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
+import { usePathname, useRouter } from "next/navigation";
+import styles from "./DrawerAppBar.module.css";
 
 interface Props {
     window?: () => Window;
@@ -20,17 +22,19 @@ interface Props {
 
 const drawerWidth = 240;
 const navItems = [
-    '行きたい登録', 
-    '登録内容確認', 
-    '開催予定一覧', 
-    '参加予定一覧', 
-    '通知', 
-    'アカウント設定'
+    { name: "行きたい登録", path: "/" },
+    { name: "登録内容確認", path: "/entries" },
+    { name: "開催予定一覧", path: "/events" },
+    { name: "参加予定一覧", path: "/participation/add" },
+    { name: "通知", path: "/notifications" },
+    { name: "アカウント設定", path: "/settings" },
 ];
 
 export default function DrawerAppBar(props: Props) {
     const { window } = props;
     const [mobileOpen, setMobileOpen] = React.useState(false);
+    const pathname = usePathname();
+    const router = useRouter();
 
     const handleDrawerToggle = () => {
         setMobileOpen((prevState) => !prevState);
@@ -44,9 +48,14 @@ export default function DrawerAppBar(props: Props) {
         <Divider />
         <List>
             {navItems.map((item) => (
-            <ListItem key={item} disablePadding>
-                <ListItemButton sx={{ textAlign: 'center' }}>
-                <ListItemText primary={item} />
+            <ListItem key={item.name} disablePadding>
+                <ListItemButton 
+                    className={`${styles.listItemButton} ${
+                        pathname === item.path ? styles.listItemButtonActive : ""
+                    }`}
+                        onClick={() =>  router.push(item.path)}
+                >
+                        <ListItemText primary={item.name} />
                 </ListItemButton>
             </ListItem>
             ))}
@@ -98,8 +107,8 @@ export default function DrawerAppBar(props: Props) {
             </Typography>
             <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
                 {navItems.map((item) => (
-                <Button key={item} sx={{ color: '#fff' }}>
-                    {item}
+                <Button key={item.name} sx={{ color: '#fff' }}>
+                    {item.name}
                 </Button>
                 ))}
             </Box>
