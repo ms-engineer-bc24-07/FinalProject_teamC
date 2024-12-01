@@ -16,7 +16,7 @@ export default function RootLayout({
     <html lang="ja">
       <body>
         <Header />
-        <main>{children}</main>
+        <main style={{ marginTop: "60px", padding: "16px" }}>{children}</main>
       </body>
     </html>
   );

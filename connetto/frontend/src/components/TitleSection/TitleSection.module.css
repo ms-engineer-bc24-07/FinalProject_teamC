@@ -1,0 +1,19 @@
+.titleSection {
+    margin: 16px 0; 
+    text-align: left; 
+}
+
+.title {
+    font-size: 18px; 
+    font-weight: bold; 
+    margin: 0; 
+    color: #333; 
+    padding-left: 10px;
+    border-left: 8px solid black;
+}
+
+.subtitle {
+    font-size: 14px; /* サブタイトルのフォントサイズ */
+    color: #666; /* ライトグレー */
+    margin: 8px 0 0; /* 上部に余白 */
+}
