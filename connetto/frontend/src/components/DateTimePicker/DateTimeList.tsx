@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import DateTimePicker from "./DateTimePicker";
 import { Button, Box } from "@mui/material";
+import styles from "./DateTimeList.module.css"
 
 type DateTime = { id: number; date: string; time: string };
 
@@ -34,10 +35,8 @@ export default function DateTimeList() {
             />
         ))}
         <Button
-            variant="contained"
-            color="primary"
             onClick={handleAdd}
-            sx={{ marginTop: "16px" }}
+            className={styles.addButton}
         >
             ＋
         </Button>

@@ -43,16 +43,16 @@ export default function AddParticipation() {
     };
 
     const handleRegister = () => {
-        setIsModalOpen(true); // モーダルを開く
+        setIsModalOpen(true); 
     };
-    
+
     const handleCloseModal = () => {
-        setIsModalOpen(false); // モーダルを閉じる
+        setIsModalOpen(false); 
     };
     
     const handleConfirm = () => {
         console.log("登録が確定しました:", { dates, conditions });
-        setIsModalOpen(false); // モーダルを閉じる
+        setIsModalOpen(false); 
         // 登録確定の処理をここに追加
     };
 

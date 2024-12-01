@@ -2,14 +2,18 @@
 
 import React, { useState } from 'react';
 import Link from "next/link";
+import { usePathname } from "next/navigation"
 import AddHomeIcon from '@mui/icons-material/AddHome';
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import EventIcon from '@mui/icons-material/Event';
-import NotificationsIcon from '@mui/icons-material/Notifications';
+import NotificationBadge from '../NotificationBadge/NotificationBadge';
 import styles from './BottomMenu.module.css';
 
+
+
 export default function BottomMenu() {
-    const [activeTab, setActiveTab] = useState("home"); 
+    const pathname = usePathname();
+    const unreadCount = 1; // 未読件数（バックエンドから取得する予定）
 
     return (
         <div className={styles.container}>
@@ -17,9 +21,8 @@ export default function BottomMenu() {
             <Link 
                 href="/individual/participation/add"
                 className={`${styles.link} ${
-                    activeTab === "home" ? styles.active : ""
-                    }`}
-                    onClick={() => setActiveTab("home")}
+                    pathname === "/individual/participation/add" ? styles.active : ""
+                }`}
             >
                 <AddHomeIcon className={styles.icon} />
                 <span>Home</span>
@@ -29,9 +32,8 @@ export default function BottomMenu() {
             <Link 
                 href="/individual/entries"
                 className={`${styles.link} ${
-                    activeTab === "entries" ? styles.active : ""
+                    pathname === "/individual/entries" ? styles.active : ""
                 }`}
-                onClick={() => setActiveTab("entries")}
             >
                 <ListAltIcon className={styles.icon} />
                 <span>My Entries</span>
@@ -41,9 +43,8 @@ export default function BottomMenu() {
             <Link 
                 href="/individual/events"
                 className={`${styles.link} ${
-                    activeTab === "events" ? styles.active : ""
+                    pathname === "/individual/events" ? styles.active : ""
                 }`}
-                onClick={() => setActiveTab("events")}
             >
                 <EventIcon className={styles.icon} />
                 <span>Events</span>
@@ -53,11 +54,10 @@ export default function BottomMenu() {
             <Link 
                 href="/individual/notifications"
                 className={`${styles.link} ${
-                    activeTab === "notifications" ? styles.active : ""
+                    pathname === "/individual/notifications" ? styles.active : ""
                 }`}
-                onClick={() => setActiveTab("notifications")}
             >
-                <NotificationsIcon className={styles.icon} />
+                <NotificationBadge unreadCount={unreadCount} className={styles.icon} />
                 <span>Notification</span>
             </Link>
         </div>
