@@ -2,9 +2,9 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
-import NotificationCard from "@/components/NotificationCard/NotificationCard";
-import DrawerAppBar from "@/components/Header/DrawerAppBar";
-import BottomMenu from "@/components/BottomMenu/BottomMenu";
+import NotificationCard from "@/components/notifications/NotificationCard/NotificationCard";
+import DrawerAppBar from "@/components/layout/DrawerAppBar/DrawerAppBar";
+import BottomMenu from "@/components/layout/BottomMenu/BottomMenu";
 
 
 const mockNotifications = [

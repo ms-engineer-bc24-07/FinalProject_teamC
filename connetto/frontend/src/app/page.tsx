@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import PrimaryButton from "@/components/PrimaryButton/PrimaryButton";
+import PrimaryButton from "@/components/common/PrimaryButton/PrimaryButton";
 
 export default function Home() {
   const router = useRouter()

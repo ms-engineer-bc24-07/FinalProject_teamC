@@ -22,12 +22,12 @@ interface Props {
 
 const drawerWidth = 240;
 const navItems = [
-    { name: "行きたい登録", path: "/" },
-    { name: "登録内容確認", path: "/entries" },
-    { name: "開催予定一覧", path: "/events" },
-    { name: "参加予定一覧", path: "/participation/add" },
-    { name: "通知", path: "/notifications" },
-    { name: "アカウント設定", path: "/settings" },
+    { name: "行きたい登録", path: "/individual/participation" },
+    { name: "登録内容確認", path: "/individual/entries" },
+    { name: "開催予定", path: "/individual/events?tab=0" },
+    { name: "参加履歴", path: "/individual/events?tab=1" },
+    { name: "通知", path: "/individual/notifications" },
+    { name: "アカウント設定", path: "/individual/settings" },
 ];
 
 export default function DrawerAppBar(props: Props) {
