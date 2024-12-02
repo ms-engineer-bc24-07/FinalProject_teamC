@@ -8,7 +8,7 @@ export default function RegistrationComplete() {
 
     useEffect(() => {
         const timer = setTimeout(() => {
-            router.push("/individual/participation/add");
+            router.push("/individual/participation");
         }, 2000);
     
         return () => clearTimeout(timer); 

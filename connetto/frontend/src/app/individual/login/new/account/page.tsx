@@ -1,8 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import InputField from "@/components/InputField/InputField";
-import PrimaryButton from "@/components/PrimaryButton/PrimaryButton";
+import InputField from "@/components/common/InputField/InputField";
+import PrimaryButton from "@/components/common/PrimaryButton/PrimaryButton";
 
 export default function AccountRegister() {
     const router = useRouter()

@@ -6,20 +6,20 @@ import { usePathname } from "next/navigation"
 import AddHomeIcon from '@mui/icons-material/AddHome';
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import EventIcon from '@mui/icons-material/Event';
-import NotificationBadge from '../NotificationBadge/NotificationBadge';
+import NotificationBadge from '../../notifications/NotificationBadge/NotificationBadge';
 import styles from './BottomMenu.module.css';
 
 
 
 export default function BottomMenu() {
     const pathname = usePathname();
-    const unreadCount = 1; // 未読件数（バックエンドから取得する予定）
+    const unreadCount = 2; // 未読件数（バックエンドから取得する予定）
 
     return (
         <div className={styles.container}>
             {/* Home */}
             <Link 
-                href="/individual/participation/add"
+                href="/individual/participation"
                 className={`${styles.link} ${
                     pathname === "/individual/participation/add" ? styles.active : ""
                 }`}

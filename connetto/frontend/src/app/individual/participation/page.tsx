@@ -1,15 +1,15 @@
 "use client";
 
 import React, { useState } from "react";
-import BottomMenu from '@/components/BottomMenu/BottomMenu';
-import DrawerAppBar from '@/components/Header/DrawerAppBar';
-import PrimaryButton from '@/components/PrimaryButton/PrimaryButton';
-import TitleSection from '@/components/TitleSection/TitleSection';
-import ToggleSwitch from '@/components/ToggleSwitch/ToggleSwitch';
-import DateTimeList from "@/components/DateTimePicker/DateTimeList";
-import ConditionLayout from "@/components/ConditionLayout/ConditionLayout";
-import DropdownCondition from "@/components/DropdownCondition/DropdownCondition";
-import ModalConfirmation from "@/components/ModalConfirmation/ModalConfirmation";
+import BottomMenu from '@/components/layout/BottomMenu/BottomMenu';
+import DrawerAppBar from '@/components/layout/DrawerAppBar/DrawerAppBar';
+import PrimaryButton from '@/components/common/PrimaryButton/PrimaryButton';
+import TitleSection from '@/components/common/TitleSection/TitleSection';
+import ToggleSwitch from '@/components/common/ToggleSwitch/ToggleSwitch';
+import DateTimeList from "@/components/forms/DateTimePicker/DateTimeList";
+import ConditionLayout from "@/components/forms/ConditionLayout/ConditionLayout";
+import DropdownCondition from "@/components/forms/DropdownCondition/DropdownCondition";
+import ModalConfirmation from "@/components/forms/ModalConfirmation/ModalConfirmation";
 import { SelectChangeEvent  } from "@mui/material";
 
 
@@ -57,7 +57,7 @@ export default function AddParticipation() {
     };
 
     return (
-        <div style={{ marginTop: '40px' }}>
+        <div style={{ marginTop: '40px', marginBottom: '60px' }}>
             <DrawerAppBar />
             <TitleSection title='日時' />
             <DateTimeList />
