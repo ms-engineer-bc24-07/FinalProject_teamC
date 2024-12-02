@@ -1,6 +1,7 @@
 from django.urls import path
-from .views import HelloWorldView
+
+from .controllers import group_controller
 
 urlpatterns = [
-    path('hello/', HelloWorldView.as_view(), name='hello'),
+    path("grouped-users/", group_controller.get_grouped_users),
 ]

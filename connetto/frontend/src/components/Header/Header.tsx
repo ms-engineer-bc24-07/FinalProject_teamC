@@ -4,9 +4,9 @@ import React from "react";
 import styles from "./Header.module.css";
 
 export default function Header() {
-    return (
+  return (
     <header className={styles.header}>
-        <div className={styles.logo}>LOGO</div>
+      <div className={styles.logo}>LOGO</div>
     </header>
-    );
+  );
 }
