@@ -6,6 +6,7 @@ from django.db import models
 # Create your models here.
 class User(models.Model):
     name = models.CharField(max_length=255)
+    company = models.CharField(max_length=100)  # 企業情報を保持
     birth_year = models.IntegerField()  # 生まれ年（西暦）
     gender = models.CharField(
         max_length=10, choices=[("male", "男性"), ("female", "女性")]

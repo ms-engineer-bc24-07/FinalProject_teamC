@@ -1,3 +1,4 @@
+# connetto/backend/connetto_backend/settings.py
 import os
 from pathlib import Path
 
@@ -107,3 +108,12 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # CORS Settings
 CORS_ALLOW_ALL_ORIGINS = os.getenv("CORS_ALLOW_ALL_ORIGINS", "True") == "True"
+
+# Scoring Weights Configuration
+SCORING_WEIGHTS = {
+    "性別制限": {"同性": 10, "希望なし": 0},
+    "年代制限": {"同年代": 8, "幅広い年代": 5, "希望なし": 0},
+    "入社年": {"完全一致": 7, "希望なし": 0},
+    "部署希望": {"所属部署内希望": 7, "他部署混在": 3, "希望なし": 0},
+    "お店の雰囲気": {"落ち着いたお店": 5, "わいわいできるお店": 3, "希望なし": 0},
+}
