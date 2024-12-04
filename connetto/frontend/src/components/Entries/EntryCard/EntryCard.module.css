@@ -1,0 +1,82 @@
+.entryCard {
+    width: 100%;
+    max-width: 400px;
+    padding: 16px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    font-family: Arial, sans-serif;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.entryDetails {
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.entrySection {
+    background-color: #f4f4f4;
+    padding: 12px;
+    border-radius: 4px;
+}
+
+.entrySection h3 {
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: #333;
+}
+
+.sectionTitle {
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: #333;
+}
+
+.dateList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 14px;
+    color: #555;
+}
+
+.conditionText {
+    font-size: 14px;
+    color: #555;
+}
+
+.entryButtons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px
+
+}
+
+.changeButton {
+    background-color: #8d8d8d;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.deleteButton {
+    background-color: #0f162e;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.changeButton:hover,
+.deleteButton:hover {
+    opacity: 0.9;
+}
