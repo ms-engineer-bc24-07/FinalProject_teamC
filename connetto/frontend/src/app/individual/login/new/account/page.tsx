@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import InputField from "@/components/common/InputField/InputField";
 import PrimaryButton from "@/components/common/PrimaryButton/PrimaryButton";
+import TitleSection from "@/components/common/TitleSection/TitleSection";
 
 export default function AccountRegister() {
     const router = useRouter()
@@ -13,7 +14,7 @@ export default function AccountRegister() {
 
     return (
         <div>
-            <h1>情報登録</h1>
+            <TitleSection title="情報登録"/>
             <form>
             <InputField
                 label="ユーザーネーム"

@@ -7,16 +7,19 @@ type PrimaryButtonProps = {
     children: React.ReactNode;
     onClick?: () => void;
     disabled?: boolean;
+    type?: "button" | "submit" | "reset";
 };
 
 export default function PrimaryButton({
     children,
     onClick,
     disabled = false,
+    type = "button",
 }: PrimaryButtonProps) {
     return (
     <div className={styles.container}>
         <button
+            type={type} 
             className={`${styles.button} ${disabled ? styles.disabled : ""}`}
             onClick={onClick}
             disabled={disabled}
