@@ -1,0 +1,19 @@
+.navButton {
+    color: #fff;
+    font-weight: normal;
+    transition: color 0.2s ease;
+}
+
+.navButtonActive {
+    color: black; 
+    font-weight: bold; 
+  }
+
+.listItemButton {
+    text-align: center;
+  }
+  
+  .listItemButtonActive {
+    color: black;
+    font-weight: bold;
+  }

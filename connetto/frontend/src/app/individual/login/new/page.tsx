@@ -1,9 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import InputField from "@/components/InputField/InputField";
-import PrimaryButton from "@/components/PrimaryButton/PrimaryButton";
-import BackButton from "@/components/BackButton/BackButton";
+import InputField from "@/components/common/InputField/InputField";
+import PrimaryButton from "@/components/common/PrimaryButton/PrimaryButton";
+import BackButton from "@/components/common/BackButton/BackButton";
 
 export default function CorporateLogin() {
   const router = useRouter();
