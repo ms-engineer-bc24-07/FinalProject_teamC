@@ -7,6 +7,9 @@ from django.db import models
 # 飲み会希望条件モデル
 class PartyPreference(models.Model):
     user = models.ForeignKey("api.User", on_delete=models.CASCADE)  # ユーザーID
+    date = models.DateField()
+    time = models.TimeField()
+    venue_preference = models.CharField(max_length=50)
     gender_restriction = models.CharField(
         max_length=50, choices=[("same_gender", "同性"), ("no_restriction", "希望なし")]
     )

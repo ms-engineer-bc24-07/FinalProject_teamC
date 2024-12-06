@@ -117,3 +117,6 @@ SCORING_WEIGHTS = {
     "部署希望": {"所属部署内希望": 7, "他部署混在": 3, "希望なし": 0},
     "お店の雰囲気": {"落ち着いたお店": 5, "わいわいできるお店": 3, "希望なし": 0},
 }
+
+GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
+HOTPEPPER_API_KEY = os.getenv("HOTPEPPER_API_KEY")
