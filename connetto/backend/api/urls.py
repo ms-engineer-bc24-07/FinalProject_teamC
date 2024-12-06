@@ -1,6 +1,8 @@
 from django.urls import path
-from .views import HelloWorldView
 
+from .controllers import group_controller
+
+# グループ分けされたユーザーのリストや結果を取得するエンドポイントを定義
 urlpatterns = [
-    path('hello/', HelloWorldView.as_view(), name='hello'),
+    path("grouped-users/", group_controller.get_grouped_users),
 ]

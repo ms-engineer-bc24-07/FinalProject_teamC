@@ -4,6 +4,7 @@ import React from "react";
 import styles from "./PrimaryButton.module.css";
 
 type PrimaryButtonProps = {
+
     children: React.ReactNode;
     onClick?: () => void;
     disabled?: boolean;
@@ -15,9 +16,11 @@ export default function PrimaryButton({
     onClick,
     disabled = false,
     type = "button",
+
 }: PrimaryButtonProps) {
-    return (
+  return (
     <div className={styles.container}>
+
         <button
             type={type} 
             className={`${styles.button} ${disabled ? styles.disabled : ""}`}
@@ -26,6 +29,7 @@ export default function PrimaryButton({
         >
             {children}
         </button>
+
     </div>
-);
+  );
 }

@@ -1,31 +1,31 @@
 .container {
-    display: flex;
-    flex-direction: column; 
-    align-items: center; 
-    justify-content: center; 
-    gap: 20px; 
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
 }
 
 .button {
-    width: 70%;
-    padding: 12px;
-    font-size: 16px;
-    font-weight: bold;
-    text-align: center;
-    color: #ffffff;
-    background-color: #1f2937; /* 黒 */
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-    margin-bottom: 20px;
+  width: 70%;
+  padding: 12px;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+  color: #ffffff;
+  background-color: #1f2937; /* 黒 */
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-bottom: 20px;
 }
 
 .button:hover {
-    background-color: #111827; /* より暗い黒 */
+  background-color: #111827; /* より暗い黒 */
 }
 
 .disabled {
-    background-color: #9ca3af; /* グレー */
-    cursor: not-allowed;
+  background-color: #9ca3af; /* グレー */
+  cursor: not-allowed;
 }

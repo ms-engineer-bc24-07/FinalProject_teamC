@@ -1,11 +1,11 @@
 {
-    "editor.formatOnSave": true,
-    "editor.tabSize": 2,
-    "files.exclude": {
+  "editor.formatOnSave": true,
+  "editor.tabSize": 2,
+  "files.exclude": {
     "**/.git": true,
     "**/.DS_Store": true,
     "**/node_modules": true
-    },
-    "python.formatting.provider": "black",
-    "python.linting.flake8Enabled": true
+  },
+  "python.formatting.provider": "black",
+  "python.linting.flake8Enabled": true
 }

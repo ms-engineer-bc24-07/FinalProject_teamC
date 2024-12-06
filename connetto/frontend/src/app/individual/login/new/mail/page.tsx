@@ -9,7 +9,8 @@ import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/utils/firebase";
 
 export default function MailRegister() {
-    const router = useRouter()
+  const router = useRouter();
+
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -91,4 +92,5 @@ export default function MailRegister() {
             </form>
         </div>
     );
+
 }

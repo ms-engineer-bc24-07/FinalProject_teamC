@@ -1,8 +1,8 @@
 {
-    "recommendations": [
+  "recommendations": [
     "esbenp.prettier-vscode",
     "dbaeumer.vscode-eslint",
     "ms-python.python",
     "formulahendry.auto-close-tag"
-    ]
+  ]
 }

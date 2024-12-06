@@ -4,14 +4,14 @@ import { useRouter } from "next/navigation";
 import PrimaryButton from "@/components/common/PrimaryButton/PrimaryButton";
 
 export default function Home() {
-  const router = useRouter()
+  const router = useRouter();
 
   const navigateToLogin = () => {
-    router.push("/individual/login/existing"); 
+    router.push("/individual/login/existing");
   };
 
   const navigateToRegister = () => {
-    router.push("/individual/login/new"); 
+    router.push("/individual/login/new");
   };
 
   return (

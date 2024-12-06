@@ -6,11 +6,12 @@ import PrimaryButton from "@/components/common/PrimaryButton/PrimaryButton";
 import TitleSection from "@/components/common/TitleSection/TitleSection";
 
 export default function AccountRegister() {
-    const router = useRouter()
+  const router = useRouter();
 
-    const navigateToComp = () => {
-        router.push("/individual/login/new/complete"); 
-    };
+  const navigateToComp = () => {
+    router.push("/individual/login/new/complete");
+  };
+
 
     return (
         <div>
@@ -67,3 +68,4 @@ export default function AccountRegister() {
         </div>
     );
 }
+

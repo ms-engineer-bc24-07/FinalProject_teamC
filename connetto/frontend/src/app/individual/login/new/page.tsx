@@ -9,6 +9,7 @@ import PrimaryButton from "@/components/common/PrimaryButton/PrimaryButton";
 import BackButton from "@/components/common/BackButton/BackButton";
 
 export default function CorporateLogin() {
+
     const router = useRouter();
 
     const [corporateCode, setCorporateCode] = useState("");
@@ -62,5 +63,6 @@ export default function CorporateLogin() {
             <PrimaryButton onClick={handleNext}>次へ</PrimaryButton>
         </div>
     );
+
 }
 
