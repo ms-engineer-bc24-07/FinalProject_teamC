@@ -9,6 +9,7 @@ services:
       - "8000:8000"
     volumes:
       - ./backend:/app
+      - ./backend/firebase_credentials.json:/app/firebase_credentials.json
     environment:
       - DEBUG=${DEBUG}
       - POSTGRES_DB=${POSTGRES_DB}
@@ -19,6 +20,9 @@ services:
       - SECRET_KEY=${SECRET_KEY}
       - ALLOWED_HOSTS=${ALLOWED_HOSTS}
       - CORS_ALLOW_ALL_ORIGINS=${CORS_ALLOW_ALL_ORIGINS}
+      - FIREBASE_CREDENTIALS_PATH=/app/firebase_credentials.json
+      - DJANGO_SETTINGS_MODULE=connetto_backend.settings
+      - PYTHONPATH=/app
     depends_on:
       - db
 

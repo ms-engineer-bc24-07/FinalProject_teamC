@@ -50,6 +50,7 @@ export default function MailRegister() {
 
         try {
             await createUserWithEmailAndPassword(auth, email, password);
+            console.log("現在のユーザー:", auth.currentUser);
             router.push("/individual/login/new/account"); 
         } catch (err) {
             console.error("登録エラー:", err);

@@ -5,7 +5,7 @@ import { FormControl, InputLabel, MenuItem, Select, SelectChangeEvent } from "@m
 type DropdownConditionProps = {
     value: string;
     onChange: (event: SelectChangeEvent) => void;
-    options: string[];
+    options: { value: string; label: string }[];
     placeholder?: string, 
 };
 
@@ -41,8 +41,8 @@ export default function DropdownCondition({
                     {placeholder} {/* 未選択時に表示するテキスト */}
                 </MenuItem>
                 {options.map((option, index) => (
-                <MenuItem key={index} value={option}>
-                    {option}
+                <MenuItem key={index} value={option.value}>
+                    {option.label}
                 </MenuItem>
                 ))}
             </Select>

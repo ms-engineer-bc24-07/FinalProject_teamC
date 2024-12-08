@@ -3,6 +3,8 @@ import os
 from pathlib import Path
 
 from dotenv import load_dotenv
+from . import firebase
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -107,7 +109,8 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # CORS Settings
-CORS_ALLOW_ALL_ORIGINS = os.getenv("CORS_ALLOW_ALL_ORIGINS", "True") == "True"
+CORS_ALLOW_ALL_ORIGINS =  True
+CORS_ALLOW_CREDENTIALS = True
 
 # Scoring Weights Configuration
 SCORING_WEIGHTS = {
@@ -116,4 +119,24 @@ SCORING_WEIGHTS = {
     "入社年": {"完全一致": 7, "希望なし": 0},
     "部署希望": {"所属部署内希望": 7, "他部署混在": 3, "希望なし": 0},
     "お店の雰囲気": {"落ち着いたお店": 5, "わいわいできるお店": 3, "希望なし": 0},
+}
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+}
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'DEBUG',
+    },
 }
