@@ -9,6 +9,7 @@ type InputFieldProps = {
   value?: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   label?: string;
+  name?: string;
 };
 
 export default function InputField({
@@ -17,6 +18,7 @@ export default function InputField({
   value,
   onChange,
   label,
+  name,
 }: InputFieldProps) {
   return (
     <div className={styles.inputContainer}>
@@ -26,6 +28,7 @@ export default function InputField({
         placeholder={placeholder}
         value={value}
         onChange={onChange}
+        name={name}
         className={styles.input}
       />
     </div>
