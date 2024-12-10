@@ -13,3 +13,4 @@ venv/
 *.venv
 
 backend/firebase_credentials.json
+node_modules
