@@ -7,7 +7,7 @@ from collections import defaultdict
 from api.models.party_preference_model import (  # PartyPreferenceモデルをインポート
     PartyPreference,
 )
-from api.models.user_model import User  # Userモデルをインポート
+from api.models.user_profile_model import User  # Userモデルをインポート
 from django.conf import settings  # settings.py のスコア設定をインポート
 
 

@@ -1,6 +1,6 @@
 # api/models/party_preference_model.py
 
-# from api.models.user_model import User
+from api.models.user_model import User
 from django.db import models
 
 
