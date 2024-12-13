@@ -65,3 +65,11 @@ class NotificationDetailView(APIView):
         notification.is_read = True
         notification.save()
         return Response({"message": "通知を既読にしました。"}, status=status.HTTP_200_OK)
+
+class UnreadNotificationsCountView(APIView):
+    authentication_classes = [FirebaseAuthentication] 
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        unread_count = Notification.objects.filter(user=request.user, is_read=False).count()
+        return Response({"unread_count": unread_count})
