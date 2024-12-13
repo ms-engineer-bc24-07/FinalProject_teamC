@@ -4,6 +4,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from api.models.participation_model import Participation
 from api.serializers.participation_serializer import ParticipationSerializer
+from api.models.notification_model import Notification
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
 from django.contrib.auth.models import User
@@ -54,8 +55,16 @@ class ParticipationView(APIView):
 
         serializer = ParticipationSerializer(data=data)
         if serializer.is_valid():
+            participation = serializer.save()
             print("バリデーション成功:", serializer.validated_data)
-            serializer.save()
+
+            # 通知を作成
+            Notification.objects.create(
+                user=user,
+                title="【登録完了】",
+                body="行きたい登録が完了しました！ありがとうございます。内容の変更や削除は申込内容確認画面から行うことができます。",
+            )
+
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         print("バリデーションエラー:", serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
