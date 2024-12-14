@@ -3,6 +3,7 @@
 
 import os
 
+import openai
 import requests
 from dotenv import load_dotenv
 
@@ -32,7 +33,7 @@ class VenueService:
             if not data["results"]:
                 raise ValueError("座標が見つかりませんでした。")
 
-            location = data()["results"][0]["geometry"]["location"]
+            location = data["results"][0]["geometry"]["location"]
             return location["lat"], location["lng"]
         except (requests.RequestException, ValueError) as e:
             raise RuntimeError(f"Google Maps APIエラー: {e}")
@@ -44,7 +45,7 @@ class VenueService:
             raise ValueError("座標リストが空です。")
 
         lat = sum(coord["lat"] for coord in coordinates) / len(coordinates)
-        lng = sum(coord["lng"] for coord in coordinates)
+        lng = sum(coord["lng"] for coord in coordinates) / len(coordinates)
         return lat, lng
 
     @staticmethod
@@ -60,31 +61,65 @@ class VenueService:
                 "venue_preference は有効なキーワード文字列で指定してください。"
             )
 
-        api_url = ("https://webservice.recruit.co.jp/hotpepper/gourmet/v1/",)
-        params = (
-            {
-                "key": VenueService.HOTPEPPER_API_KEY,
-                "lat": midpoint[0],  # 緯度
-                "lng": midpoint[1],  # 経度
-                "range": 3,  # 検索範囲（3km）
-                "keyword": venue_preference,  # 検索キーワード
-                "format": "json",  # レスポンス形式
-            },
-        )
+        api_url = "https://webservice.recruit.co.jp/hotpepper/gourmet/v1/"
+        params = {
+            "key": VenueService.HOTPEPPER_API_KEY,
+            "lat": midpoint[0],  # 緯度
+            "lng": midpoint[1],  # 経度
+            "range": 3,  # 検索範囲（3km）
+            "keyword": venue_preference,  # 検索キーワード
+            "format": "json",  # レスポンス形式
+        }
+
         try:
             response = requests.get(api_url, params=params, timeout=10)
             response.raise_for_status()
             data = response.json()
 
             # APIレスポンスの検証
-            if "results" not in data or "shop" not in data["results"]:
+            if not data.get("results") or not data["results"].get("shop"):
                 raise ValueError("店舗情報が見つかりませんでした。")
 
             return data["results"]["shop"]
-
         except requests.exceptions.Timeout:
             raise RuntimeError("HotPepper API リクエストがタイムアウトしました。")
         except requests.exceptions.RequestException as e:
             raise RuntimeError(f"HotPepper API リクエストエラー: {e}")
         except ValueError as e:
             raise RuntimeError(f"HotPepper API レスポンスエラー: {e}")
+
+    @staticmethod
+    def recommend_top_venues(shops):
+        """OpenAI APIでお店リストから3つのおすすめを生成"""
+        try:
+            # 店舗情報をまとめる
+            shop_descriptions = [
+                f"店名: {shop['name']}, ジャンル: {shop['genre']['name']}, 住所: {shop['address']}"
+                for shop in shops
+            ]
+
+            # OpenAI APIへのプロンプト
+            prompt = (
+                "以下のお店の中から、最もおすすめの3つを提案してください。\n\n"
+                + "\n".join(
+                    f"{i + 1}. {desc}" for i, desc in enumerate(shop_descriptions)
+                )
+                + "\n\n提案結果:"
+            )
+
+            # OpenAI API呼び出し
+            response = openai.Completion.create(
+                engine="text-davinci-003",
+                prompt=prompt,
+                max_tokens=150,
+                temperature=0.7,
+            )
+
+            if not response.choices or not response.choices[0].text:
+                raise ValueError("OpenAI APIのレスポンスが不正です。")
+
+            # 結果を取得
+            recommendations = response.choices[0].text.strip()
+            return recommendations
+        except Exception as e:
+            raise RuntimeError(f"OpenAI APIエラー: {e}")
