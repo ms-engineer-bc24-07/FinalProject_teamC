@@ -12,6 +12,7 @@ env/
 venv/
 *.venv
 .env
+.env.local
 
 backend/firebase_credentials.json
 frontend/node_modules
