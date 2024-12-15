@@ -1,6 +1,8 @@
-# api/models/user_model.py
-# ユーザー情報モデル
 # このファイルは削除予定
+
+# # api/models/user_model.py
+# ユーザー情報モデル
+
 from django.db import models
 
 

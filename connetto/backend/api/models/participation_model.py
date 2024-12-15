@@ -1,17 +1,19 @@
 # api/models/participation_model.py
 
-from django.db import models
 from django.contrib.auth.models import User  # Djangoのデフォルトユーザーモデルを使用
+from django.db import models
+
 
 class Participation(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="participations")
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="participations"
+    )
+    date = models.DateField()  # 希望日
+    time = models.TimeField()  # 希望時間
     gender_restriction = models.CharField(
         max_length=50,
-        choices=[
-            ("same_gender", "同性"),
-            ("no_restriction", "希望なし")
-        ],
-        default="no_restriction"
+        choices=[("same_gender", "同性"), ("no_restriction", "希望なし")],
+        default="no_restriction",
     )
     age_restriction = models.CharField(
         max_length=50,
@@ -20,15 +22,12 @@ class Participation(models.Model):
             ("broad_age", "幅広い年代"),
             ("no_restriction", "希望なし"),
         ],
-        default="no_restriction"
+        default="no_restriction",
     )
     joining_year_restriction = models.CharField(
         max_length=50,
-        choices=[
-            ("exact_match", "同期のみ"), 
-            ("no_restriction", "希望なし")
-        ],
-        default="no_restriction"
+        choices=[("exact_match", "同期のみ"), ("no_restriction", "希望なし")],
+        default="no_restriction",
     )
     department_restriction = models.CharField(
         max_length=50,
@@ -37,7 +36,7 @@ class Participation(models.Model):
             ("mixed_departments", "他部署混在"),
             ("no_restriction", "希望なし"),
         ],
-        default="no_restriction"
+        default="no_restriction",
     )
     atmosphere_preference = models.CharField(
         max_length=50,
@@ -46,7 +45,7 @@ class Participation(models.Model):
             ("lively", "わいわいできるお店"),
             ("no_restriction", "希望なし"),
         ],
-        default="no_restriction"
+        default="no_restriction",
     )
     desired_dates = models.JSONField()  # 希望日時をリスト形式で保存可能
     created_at = models.DateTimeField(auto_now_add=True)  # 登録日時

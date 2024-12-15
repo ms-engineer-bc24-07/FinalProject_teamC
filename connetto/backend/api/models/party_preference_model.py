@@ -1,3 +1,5 @@
+# このファイルは削除予定
+
 # api/models/party_preference_model.py
 
 from api.models.user_model import User
