@@ -1,3 +1,8 @@
+# このファイルは削除予定
+
+# api/models/party_preference_model.py
+
+from api.models.user_model import User
 from django.db import models
 from django.core.validators import MinValueValidator  # 追加
 from datetime import datetime  # 追加
@@ -8,7 +13,10 @@ def import_user_model():
     return User
 
 class PartyPreference(models.Model):
-    user = models.ForeignKey('User', on_delete=models.CASCADE)  # 'User'を文字列で指定
+    user = models.ForeignKey("api.User", on_delete=models.CASCADE)  # ユーザーID
+    date = models.DateField()
+    time = models.TimeField()
+    venue_preference = models.CharField(max_length=50)
     gender_restriction = models.CharField(
         max_length=50, 
         choices=[("same_gender", "同性"), ("no_restriction", "希望なし")]

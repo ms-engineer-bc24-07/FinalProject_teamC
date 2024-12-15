@@ -1,3 +1,8 @@
+# このファイルは削除予定
+
+# # api/models/user_model.py
+# ユーザー情報モデル
+
 from django.db import models
 from django.core.validators import MinValueValidator
 from datetime import datetime
@@ -27,9 +32,11 @@ class User(models.Model):
             ("development", "開発部"),
         ],
     )  # 部署
-    joining_year = models.IntegerField(
-        validators=[MinValueValidator(1900)]  # 1900年以降の年に制限
-    )  # 入社年（西暦）
+    joining_year = models.IntegerField()  # 入社年（西暦）
+    email = models.EmailField(unique=True)
+    nearest_station = models.CharField(max_length=100)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.name} ({self.department}, {self.company})"

@@ -11,7 +11,9 @@ __pycache__/
 env/
 venv/
 *.venv
+.env
+.env.local
 
 backend/firebase_credentials.json
-
 init.sql
+frontend/node_modules
