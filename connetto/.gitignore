@@ -13,3 +13,5 @@ venv/
 *.venv
 
 backend/firebase_credentials.json
+
+init.sql

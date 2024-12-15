@@ -1,43 +1,39 @@
+import firebase_admin
+from firebase_admin import credentials, auth
 import os
-from firebase_admin import credentials, initialize_app, auth
-from dotenv import load_dotenv
+import logging
+from pathlib import Path
 
-load_dotenv()
-# 環境変数からパスを取得
+# Firebaseの初期化
 firebase_credentials_path = os.getenv("FIREBASE_CREDENTIALS_PATH")
-
 if not firebase_credentials_path:
-    raise ValueError("環境変数 'FIREBASE_CREDENTIALS_PATH' が設定されていません。")
+    raise ValueError("FIREBASE_CREDENTIALS_PATH が設定されていません。")
 
-print(f"Firebase credentials path: {firebase_credentials_path}")
+firebase_credentials_path = Path(__file__).resolve().parent.parent / firebase_credentials_path
 
-# Firebase Admin SDK の初期化
-cred = credentials.Certificate(firebase_credentials_path)
-firebase_app = initialize_app(cred)
-
-# 初期化成功メッセージの確認
+# Firebase Admin SDKの初期化
 try:
-    print("Firebase Admin SDK 初期化成功")
-except Exception as e:
-    print("エラーが発生しました:", e)
-
-# Firebaseトークン検証を行う関数（サーバーのリクエストで利用）
-def verify_firebase_token(id_token):
-    """
-    Firebase IDトークンを検証する関数
-    :param id_token: クライアントから送られるFirebaseのIDトークン
-    :return: 検証されたトークン情報、またはエラーをスロー
-    """
+    # すでに初期化されている場合は、get_app() で取得
+    firebase_admin.get_app()
+    logging.info("Firebaseはすでに初期化されています。")
+except firebase_admin.exceptions.AppNotFoundError:
+    # 初期化されていない場合は、ここで初期化する
     try:
-        decoded_token = auth.verify_id_token(id_token)
-        print("トークンが正常に検証されました:", decoded_token)
-        return decoded_token
-    except auth.ExpiredIdTokenError:
-        print("トークンが期限切れです")
-        raise ValueError("トークンが期限切れです")
-    except auth.InvalidIdTokenError:
-        print("トークンが無効です")
-        raise ValueError("トークンが無効です")
+        cred = credentials.Certificate(firebase_credentials_path)
+        firebase_admin.initialize_app(cred)
+        logging.info("Firebaseの初期化が完了しました。")
     except Exception as e:
-        print("トークン検証中にエラーが発生しました:", e)
-        raise
+        logging.error(f"Firebaseの初期化中にエラーが発生しました: {e}")
+
+# Firebaseトークン検証用の関数
+def verify_firebase_token(id_token):
+    try:
+        # トークンを検証してデコードする
+        decoded_token = auth.verify_id_token(id_token)
+        return decoded_token
+    except auth.InvalidIdTokenError as e:
+        # 無効なトークンエラーをより明確に
+        raise ValueError("無効なトークンです") from e
+    except Exception as e:
+        # その他のエラー
+        raise ValueError("トークン検証に失敗しました") from e

@@ -33,8 +33,7 @@ if not firebase_credentials_path:
 firebase_credentials_path = BASE_DIR / firebase_credentials_path
 
 # Firebase Admin SDKの初期化
-if not firebase_admin._apps:  # Firebaseが初期化されていない場合のみ初期化
-    logging.debug(f"Firebaseの初期化を開始します。認証ファイルのパス: {firebase_credentials_path}")
+if len(firebase_admin._apps) == 0:  # _apps を確認して、すでに初期化されていない場合のみ実行
     try:
         cred = credentials.Certificate(firebase_credentials_path)
         firebase_admin.initialize_app(cred)
@@ -45,6 +44,7 @@ else:
     logging.info("Firebaseはすでに初期化されています。")
 
 # Application definition
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
