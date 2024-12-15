@@ -7,7 +7,7 @@ from collections import defaultdict
 from api.models.party_preference_model import (  # PartyPreferenceモデルをインポート
     PartyPreference,
 )
-from api.models.user_profile_model import User  # Userモデルをインポート
+from api.models.user_profile_model import UserProfile  # Userモデルをインポート
 from django.conf import settings  # settings.py のスコア設定をインポート
 
 
@@ -16,7 +16,7 @@ def group_users_by_date_and_preference():
     ユーザーの飲み会希望日を基にグループ分けする関数。
     """
     # ユーザーの飲み会希望日を基にグループ分け
-    user = User.objects.all()  # User モデルから直接ユーザー情報を取得
+    user = UserProfile.objects.all()  # User モデルから直接ユーザー情報を取得
     preferences = PartyPreference.objects.all()
 
     # 希望日ごとにユーザーをグループ化、企業ごとのサブグループを作成
