@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import BottomMenu from '@/components/layout/BottomMenu/BottomMenu';
 import DrawerAppBar from '@/components/layout/DrawerAppBar/DrawerAppBar';
 import PrimaryButton from '@/components/common/PrimaryButton/PrimaryButton';
@@ -24,6 +25,7 @@ type Conditions = {
 };
 
 export default function AddParticipation() {
+    const router = useRouter();
     const [conditions, setConditions] = useState<Conditions>({
         gender: "",
         age: "",
@@ -41,6 +43,14 @@ export default function AddParticipation() {
     };
 
     const handleRegister = () => {
+        const normalizedConditions = { ...conditions };
+        Object.keys(normalizedConditions).forEach((key) => {
+            if (!normalizedConditions[key as keyof Conditions]) {
+                normalizedConditions[key as keyof Conditions] = "no_restriction";
+            }
+        });
+
+        setConditions(normalizedConditions);
         setIsModalOpen(true); 
     };
 
@@ -93,8 +103,20 @@ export default function AddParticipation() {
             );
 
             console.log("登録成功:", response.data);
-            alert("登録が完了しました！");
-            setIsModalOpen(false); 
+
+            setDates([]);
+            setConditions({
+                gender: "",
+                age: "",
+                joining_year: "",
+                department: "",
+                atmosphere: "",
+            });
+
+            setIsModalOpen(false);
+
+
+            router.refresh();    
         } catch (err) {
             console.error("登録エラー:", err);
             setError("登録に失敗しました。入力内容を確認してください。");
@@ -107,7 +129,9 @@ export default function AddParticipation() {
         <div style={{ marginTop: '40px', marginBottom: '60px' }}>
             <DrawerAppBar />
             <TitleSection title='日時' />
-            <DateTimeList onChange={setDates} />
+            <DateTimeList 
+                onChange={setDates}
+            />
             <TitleSection title='希望条件(任意)' />
             <div>
                 <ConditionLayout label="性別">
@@ -118,7 +142,7 @@ export default function AddParticipation() {
                                     { value: "same_gender", label: "同性" },
                                     { value: "no_restriction", label: "希望なし" },
                                 ]}
-                        placeholder="未選択"
+                        placeholder="希望なし"
                         />
                 </ConditionLayout>
                 <ConditionLayout label="世代">
@@ -130,7 +154,7 @@ export default function AddParticipation() {
                             { value: "broad_age", label: "幅広い年代" },
                             { value: "no_restriction", label: "希望なし" },
                         ]}
-                        placeholder="未選択"
+                        placeholder="希望なし"
                         />
                 </ConditionLayout>
                 <ConditionLayout label="入社年">
@@ -141,7 +165,7 @@ export default function AddParticipation() {
                             { value: "exact_match", label: "同期のみ" },
                             { value: "no_restriction", label: "希望なし" },
                         ]}
-                        placeholder="未選択"
+                        placeholder="希望なし"
                         />
                 </ConditionLayout>
                 <ConditionLayout label="部署">
@@ -153,7 +177,7 @@ export default function AddParticipation() {
                         { value: "mixed_departments", label: "他部署交流" },
                         { value: "no_restriction", label: "希望なし" },
                     ]}
-                    placeholder="未選択"
+                    placeholder="希望なし"
                     />
                 </ConditionLayout>
                 <ConditionLayout label="お店の雰囲気">
@@ -165,13 +189,12 @@ export default function AddParticipation() {
                         { value: "lively", label: "わいわいできるお店" },
                         { value: "no_restriction", label: "希望なし" },
                     ]}
-                    placeholder="未選択"
+                    placeholder="希望なし"
                     />
                 </ConditionLayout>
             </div>
             <PrimaryButton onClick={handleRegister}>登録</PrimaryButton>
             <BottomMenu />
-            {/* 確認モーダル */}
             <ModalConfirmation
                 open={isModalOpen}
                 onClose={handleCloseModal}
@@ -179,11 +202,11 @@ export default function AddParticipation() {
                 data={{
                 dates: dates,
                 conditions: {
-                    性別: conditions.gender,
-                    年齢: conditions.age ,
-                    同期: conditions.joining_year, 
-                    部署: conditions.department,
-                    雰囲気: conditions.atmosphere, 
+                    gender: conditions.gender, 
+                    age: conditions.age,
+                    joining_year: conditions.joining_year,
+                    department: conditions.department,
+                    atmosphere: conditions.atmosphere,
                 },
                 }}
             />

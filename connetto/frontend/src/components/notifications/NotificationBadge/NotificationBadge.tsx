@@ -21,6 +21,10 @@ export default function NotificationBadge({ className }: NotificationBadgeProps)
 
     useEffect(() => {
         fetchUnreadCount(); 
+
+        const interval = setInterval(fetchUnreadCount, 10000);
+        
+        return () => clearInterval(interval);
     }, []);
 
     return (

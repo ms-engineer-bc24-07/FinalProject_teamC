@@ -4,19 +4,16 @@ import { Button, Box } from "@mui/material";
 import styles from "./DateTimeList.module.css";
 
 type DateTimeListProps = {
-    onChange: (dates: string[]) => void; // ISO形式の日時リストを親コンポーネントに渡す
+    onChange: (dates: string[]) => void; 
+    initialDates?: { date: string; time: string }[];
 };
 
-export default function DateTimeList({ onChange }: DateTimeListProps) {
+export default function DateTimeList({ onChange, initialDates = [{ date: "", time: "" }] }: DateTimeListProps) {
     const [dateTimeList, setDateTimeList] = useState<{ date: string; time: string }[]>([
         { date: "", time: "" },
     ]);
 
-    const handleAdd = () => {
-        setDateTimeList([...dateTimeList, { date: "", time: "" }]);
-    };
-
-    const handleDateTimeChange = (index: number, field: "date" | "time") => (value: string) => {
+    const handleDateTimeChange = (index: number, field: "date" | "time", value: string) => {
         setDateTimeList((prev) =>
             prev.map((item, i) => (i === index ? { ...item, [field]: value } : item))
         );
@@ -24,14 +21,26 @@ export default function DateTimeList({ onChange }: DateTimeListProps) {
 
     useEffect(() => {
         const formattedDates = dateTimeList
-            .filter((item) => item.date && item.time) // 日付と時刻が両方選択されている場合
+            .filter((item) => item.date && item.time) 
             .map((item) => {
-                const isoDateTime = `${item.date}T${item.time}:00Z`; // ISO形式に変換
+                const date = item.date.replace(/年|月/g, "-").replace(/日（.+）/, ""); // 日本語形式を変換
+                const time = item.time;
+                const isoDateTime = `${date}T${time}:00Z`; 
                 return isoDateTime;
             });
 
-        onChange(formattedDates); // 親コンポーネントに通知
-    }, [dateTimeList, onChange]);
+            onChange(formattedDates);
+        }, [dateTimeList, onChange]);
+
+        useEffect(() => {
+            if (initialDates && initialDates.length > 0) {
+                setDateTimeList(initialDates); 
+            }
+        }, []);
+    
+        const handleAdd = () => {
+            setDateTimeList([...dateTimeList, { date: "", time: "" }]);
+        };
 
     return (
         <Box>
@@ -39,7 +48,7 @@ export default function DateTimeList({ onChange }: DateTimeListProps) {
                 <DateTimePicker
                     key={index}
                     value={item}
-                    onChange={(field, value) => handleDateTimeChange(index, field)(value)}
+                    onChange={(field, value) => handleDateTimeChange(index, field, value)}
                 />
             ))}
             <Button
