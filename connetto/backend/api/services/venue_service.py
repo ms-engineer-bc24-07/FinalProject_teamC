@@ -31,7 +31,7 @@ class VenueService:
             data = response.json()
 
             if not data["results"]:
-                raise ValueError("座標が見つかりませんでした。")
+                raise ValueError("座標が見つかりませんでした。:{station}駅")
 
             location = data["results"][0]["geometry"]["location"]
             return location["lat"], location["lng"]
@@ -108,18 +108,24 @@ class VenueService:
             )
 
             # OpenAI API呼び出し
-            response = openai.Completion.create(
-                engine="text-davinci-003",
-                prompt=prompt,
-                max_tokens=150,
+            response = openai.chat.completions.create(
+                model="gpt-4",  # または "gpt-3.5-turbo"
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are an assistant that recommends the best shops based on user input.",
+                    },
+                    {"role": "user", "content": prompt},
+                ],
+                max_tokens=500,
                 temperature=0.7,
             )
 
-            if not response.choices or not response.choices[0].text:
+            if not response.choices or not response.choices[0].message.content.strip():
                 raise ValueError("OpenAI APIのレスポンスが不正です。")
 
             # 結果を取得
-            recommendations = response.choices[0].text.strip()
+            recommendations = response.choices[0].message.content.strip()
             return recommendations
         except Exception as e:
             raise RuntimeError(f"OpenAI APIエラー: {e}")
