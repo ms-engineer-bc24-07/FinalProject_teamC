@@ -78,6 +78,20 @@ def group_users_by_date_and_preference():
             else:
                 score += settings.SCORING_WEIGHTS["部署希望"]["希望なし"]
 
+            # お店の雰囲気制限スコアリング
+            if (
+                preference.shop_atmosphere_restriction == "calm"
+                and user.shop_preference == "calm"
+            ):
+                score += settings.SCORING_WEIGHTS["お店の雰囲気"]["落ち着いたお店"]
+            elif (
+                preference.shop_atmosphere_restriction == "lively"
+                and user.shop_preference == "lively"
+            ):
+                score += settings.SCORING_WEIGHTS["お店の雰囲気"]["わいわいできるお店"]
+            else:
+                score += settings.SCORING_WEIGHTS["お店の雰囲気"]["希望なし"]
+
             # 他の条件も追加可能...
             scored_users.append((user, score))
 

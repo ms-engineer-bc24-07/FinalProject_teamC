@@ -129,3 +129,31 @@ class VenueService:
             return recommendations
         except Exception as e:
             raise RuntimeError(f"OpenAI APIエラー: {e}")
+
+    @staticmethod
+    def get_venue_suggestions_for_group(group, shop_atmosphere_preference):
+        """グループの最寄り駅を元に中間地点を計算し、店舗を提案する"""
+        # グループの最寄り駅情報を取得
+        stations = [user.station for user in group]  # 各ユーザーの最寄り駅をリストに
+
+        # 各駅の座標を取得
+        coordinates = [VenueService.get_coordinates(station) for station in stations]
+
+        # 中間地点を算出
+        midpoint = VenueService.calculate_midpoint(coordinates)
+
+        # お店の雰囲気の条件に基づいて検索キーワードを設定
+        if shop_atmosphere_preference == "calm":
+            venue_preference = "落ち着いたお店"
+        elif shop_atmosphere_preference == "lively":
+            venue_preference = "わいわいできるお店"
+        else:
+            venue_preference = "希望なし"  # もし指定がない場合
+
+        # お店を検索
+        shops = VenueService.search_restaurants(midpoint, venue_preference)
+
+        # おすすめのお店をOpenAIで取得
+        top_venues = VenueService.recommend_top_venues(shops)
+
+        return top_venues
