@@ -1,10 +1,9 @@
-# api/models/participation_model.py
-
 from django.db import models
-from django.contrib.auth.models import User  # Djangoのデフォルトユーザーモデルを使用
+from django.core.validators import MinValueValidator  # これを追加
+from datetime import datetime  # これも追加
 
 class Participation(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="participations")
+    user = models.ForeignKey('User', on_delete=models.CASCADE, related_name="participations")
     gender_restriction = models.CharField(
         max_length=50,
         choices=[
@@ -48,9 +47,12 @@ class Participation(models.Model):
         ],
         default="no_restriction"
     )
-    desired_dates = models.JSONField()  # 希望日時をリスト形式で保存可能
-    created_at = models.DateTimeField(auto_now_add=True)  # 登録日時
-    updated_at = models.DateTimeField(auto_now=True)  # 更新日時
+    desired_dates = models.JSONField(
+        validators=[MinValueValidator(datetime.today().date())]  # これでエラーが解消されるはず
+    )  # 希望日時をリスト形式で保存可能
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"Participation by {self.user.username} on {self.created_at}"
