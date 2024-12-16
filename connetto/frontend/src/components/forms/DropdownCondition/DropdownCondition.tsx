@@ -31,7 +31,6 @@ export default function DropdownCondition({
                 value={value} 
                 onChange={onChange}
                 displayEmpty
-                disableUnderline 
                 sx={{
                     color: value === "" ? "#9e9e9e" : "#000000", // プレースホルダーの色と選択後の色
                     fontSize: "14px",

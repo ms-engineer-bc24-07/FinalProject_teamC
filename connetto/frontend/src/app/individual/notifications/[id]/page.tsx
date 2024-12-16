@@ -1,25 +1,40 @@
-import React from "react";
+"use client";
+
+import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import api from "@/utils/api"; // API呼び出し用のユーティリティ
 
-const mockNotifications = [
-    {
-        id: 1,
-        title: "【登録完了】",
-        body: "行きたい登録が完了しました！ありがとうございます。",
-        timestamp: "2024-12-01 18:23",
-    },
-    {
-        id: 2,
-        title: "【リマインド：本日開催】",
-        body: "本日、12月19日（火）18時開催です。ご参加お忘れなく！",
-        timestamp: "2024-12-01 11:45",
-    },
-    ];
+type Notification = {
+    id: number;
+    title: string;
+    body: string;
+    created_at: string;
+    is_read: boolean;
+};
 
-    export default function NotificationDetailPage() {
-    const params = useParams(); // パラメータ（:id）を取得
+export default function NotificationDetailPage() {
+    const params = useParams(); // 動的ルートからIDを取得
     const notificationId = Number(params.id);
-    const notification = mockNotifications.find((n) => n.id === notificationId);
+    const [notification, setNotification] = useState<Notification | null>(null);
+
+    // 通知詳細を取得
+    const fetchNotificationDetail = async () => {
+        try {
+            const response = await api.get(`/notifications/${notificationId}/`);
+            setNotification(response.data);
+
+            // 既読状態に更新
+            if (!response.data.is_read) {
+                await api.patch(`/notifications/${notificationId}/`, { is_read: true });
+            }
+        } catch (error) {
+            console.error("通知の詳細を取得できませんでした:", error);
+        }
+    };
+
+    useEffect(() => {
+        fetchNotificationDetail();
+    }, [notificationId]);
 
     if (!notification) {
         return <p>通知が見つかりません。</p>;
@@ -27,9 +42,15 @@ const mockNotifications = [
 
     return (
         <div>
-        <h1>{notification.title}</h1>
-        <p>{notification.body}</p>
-        <p>{notification.timestamp}</p>
+            <h1>{notification.title}</h1>
+            <p>{notification.body}</p>
+            <p>{new Date(notification.created_at).toLocaleString("ja-JP", {
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit",
+            })}</p>
         </div>
     );
 }
