@@ -4,9 +4,8 @@
 import random
 from collections import defaultdict
 
-from api.models.party_preference_model import (  # PartyPreferenceモデルをインポート
-    PartyPreference,
-)
+from api.models.group_model import Group  # Groupモデルをインポート（グループ作成に必要）
+from api.models.participation_model import Participation  # participationモデルをインポート
 from api.models.user_profile_model import UserProfile  # Userモデルをインポート
 from django.conf import settings  # settings.py のスコア設定をインポート
 
@@ -17,7 +16,7 @@ def group_users_by_date_and_preference():
     """
     # ユーザーの飲み会希望日を基にグループ分け
     user = UserProfile.objects.all()  # User モデルから直接ユーザー情報を取得
-    preferences = PartyPreference.objects.all()
+    preferences = Participation.objects.all()
 
     # 希望日ごとにユーザーをグループ化、企業ごとのサブグループを作成
     grouped_by_date_and_company = defaultdict(lambda: defaultdict(list))
@@ -144,7 +143,17 @@ def assign_users_to_groups():
     excluded_leaders = []  # 以前選出された幹事を除外
 
     for i, group in enumerate(groups):
+        # 幹事を選出
         leader = select_random_leader(group, excluded_leaders)
+
+        # グループ情報をデータベースに保存
+        group_model = Group.objects.create(
+            name=f"Group_{i + 1}",
+            meeting_date=group[0].participation.date,  # グループの希望日を設定
+            leader=leader,
+        )
+        group_model.members.set(group)  # グループのメンバーを設定
+        group_model.save()
 
         # 幹事を選出し、結果を格納
         group_leaders[f"Group {i + 1}"] = leader.name if leader else "No leader"
@@ -153,6 +162,6 @@ def assign_users_to_groups():
         if leader:
             excluded_leaders.append(leader)  # 幹事選出後、履歴に追加
 
-        print(f"グループ {i + 1} の幹事は {leader.name} です")
+        print(f"グループ {group_model.name} の幹事は {leader.username} です")
 
     return groups, group_leaders
