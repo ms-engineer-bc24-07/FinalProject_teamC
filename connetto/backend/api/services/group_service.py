@@ -5,6 +5,7 @@ import random
 from collections import defaultdict
 
 from api.models.group_model import Group  # Groupモデルをインポート（グループ作成に必要）
+from api.models.group_member_model import GroupMember  # グループメンバーモデル
 from api.models.participation_model import Participation  # participationモデルをインポート
 from api.models.user_profile_model import UserProfile  # Userモデルをインポート
 from django.conf import settings  # settings.py のスコア設定をインポート
@@ -15,7 +16,6 @@ def group_users_by_date_and_preference():
     ユーザーの飲み会希望日を基にグループ分けする関数。
     """
     # ユーザーの飲み会希望日を基にグループ分け
-    user = UserProfile.objects.all()  # User モデルから直接ユーザー情報を取得
     preferences = Participation.objects.all()
 
     # 希望日ごとにユーザーをグループ化、企業ごとのサブグループを作成
@@ -23,8 +23,10 @@ def group_users_by_date_and_preference():
 
     for preference in preferences:
         user = preference.user
+        if hasattr(user, "profile"):  # UserProfile が関連付けられているか確認
         # ユーザーが所属する企業と希望日でグループ化
-        grouped_by_date_and_company[preference.desired_date][user.company].append(
+            company = getattr(user, "company", "Unknown") 
+            grouped_by_date_and_company[preference.date][company].append(
             preference
         )
 
@@ -41,14 +43,13 @@ def group_users_by_date_and_preference():
     final_groups = []
 
     for date, company_groups in grouped_by_date_and_company.items():
-        scored_users = []
-
         for company, preferences in company_groups.items():
+            scored_users = []
+
+            # 希望条件に基づいてスコアリング     
             for preference in preferences:
                 user = preference.user
                 score = 0
-
-            # 希望条件に基づいてスコアリング
 
             # 性別制限スコアリング
             if (
