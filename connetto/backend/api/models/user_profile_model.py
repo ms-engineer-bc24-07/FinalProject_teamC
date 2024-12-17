@@ -14,6 +14,7 @@ class UserProfile(models.Model):
     furigana = models.CharField(max_length=100)
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES)
     birth_year = models.IntegerField()  # 生まれ年（西暦）
+    # company = models.CharField(max_length=100)  # 企業情報を保持
     join_year = models.IntegerField()  # 入社年（西暦）
     department = models.CharField(max_length=50)  # 部署
     station = models.CharField(max_length=50)

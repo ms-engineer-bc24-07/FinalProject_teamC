@@ -1,18 +1,21 @@
 # api/models/participation_model.py
 
-from django.contrib.auth.models import User  # Djangoのデフォルトユーザーモデルを使用
-from django.db import models
-
-from django.db import models
-from django.core.validators import MinValueValidator  # これを追加
 from datetime import datetime  # これも追加
+
+from django.contrib.auth.models import User  # Djangoのデフォルトユーザーモデルを使用
+from django.core.validators import MinValueValidator  # これを追加
+from django.db import models
+from django.utils import timezone  # 仮
+
 
 class Participation(models.Model):
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="participations"
     )
-    date = models.DateField()  # 希望日
-    time = models.TimeField()  # 希望時間
+    date = models.DateField(default=timezone.now)  # 仮のデフォルト値
+    time = models.TimeField(default="00:00:00")  # 仮のデフォルト時間
+    # date = models.DateField()  # 希望日
+    # time = models.TimeField()  # 希望時間
     gender_restriction = models.CharField(
         max_length=50,
         choices=[("same_gender", "同性"), ("no_restriction", "希望なし")],
@@ -51,7 +54,9 @@ class Participation(models.Model):
         default="no_restriction",
     )
     desired_dates = models.JSONField(
-        validators=[MinValueValidator(datetime.today().date())]  # これでエラーが解消されるはず
+        validators=[
+            MinValueValidator(datetime.today().date())
+        ]  # これでエラーが解消されるはず
     )  # 希望日時をリスト形式で保存可能
 
     created_at = models.DateTimeField(auto_now_add=True)

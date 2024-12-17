@@ -4,9 +4,9 @@
 import random
 from collections import defaultdict
 
-from api.models.party_preference_model import (  # PartyPreferenceモデルをインポート
-    PartyPreference,
-)
+from api.models.group_member_model import GroupMember  # グループメンバーモデル
+from api.models.group_model import Group  # Groupモデルをインポート（グループ作成に必要）
+from api.models.participation_model import Participation  # Participationモデルをインポート
 from api.models.user_profile_model import UserProfile  # Userモデルをインポート
 from django.conf import settings  # settings.py のスコア設定をインポート
 
@@ -17,7 +17,7 @@ def group_users_by_date_and_preference():
     """
     # ユーザーの飲み会希望日を基にグループ分け
     user = UserProfile.objects.all()  # User モデルから直接ユーザー情報を取得
-    preferences = PartyPreference.objects.all()
+    preferences = Participation.objects.all()
 
     # 希望日ごとにユーザーをグループ化、企業ごとのサブグループを作成
     grouped_by_date_and_company = defaultdict(lambda: defaultdict(list))

@@ -1,7 +1,9 @@
 # 飲み会希望条件関連ビュー
 
-from api.models.party_preference_model import PartyPreference
-from api.models.user_model import User
+from api.models.participation_model import Participation as PartyPreference
+
+# party_preference_controller.py が PartyPreference を必要とする場合、Participation モデルを代用
+from api.models.user_profile_model import UserProfile
 from django.http import JsonResponse
 
 from ..services.venue_service import VenueService
@@ -10,7 +12,7 @@ from ..services.venue_service import VenueService
 def suggest_venue(request):
     preferences = PartyPreference.objects.filter(date="2024-12-10")  # 希望日の条件
     user_ids = preferences.values_list("user_id", flat=True)
-    users = User.objects.filter(id__in=user_ids)
+    users = UserProfile.objects.filter(id__in=user_ids)
 
     coordinates = []
     for user in users:
