@@ -1,19 +1,17 @@
 # api/models/participation_model.py
 
-from datetime import datetime  # これも追加
+from datetime import datetime
 
-from django.contrib.auth.models import User  # Djangoのデフォルトユーザーモデルを使用
+# from django.contrib.auth.models import User  # Djangoのデフォルトユーザーモデルを使用
+from api.models.user_profile_model import UserProfile
 from django.core.validators import MinValueValidator  # これを追加
 from django.db import models
-from django.utils import timezone  # 仮
 
 
 class Participation(models.Model):
     user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="participations"
+        UserProfile, on_delete=models.CASCADE, related_name="participations"
     )
-    date = models.DateField(default=timezone.now)  # 仮のデフォルト値
-    time = models.TimeField(default="00:00:00")  # 仮のデフォルト時間
     # date = models.DateField()  # 希望日
     # time = models.TimeField()  # 希望時間
     gender_restriction = models.CharField(
@@ -61,6 +59,14 @@ class Participation(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        # desired_dates の最初の値を date と time に同期
+        # if self.desired_dates and isinstance(self.desired_dates[0], dict):
+        #     first_entry = self.desired_dates[0]
+        #     self.date = first_entry.get("date", self.date)
+        #     self.time = first_entry.get("time", self.time)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"Participation by {self.user.username} on {self.created_at}"

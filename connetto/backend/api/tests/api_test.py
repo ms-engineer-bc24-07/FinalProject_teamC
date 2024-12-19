@@ -1,4 +1,4 @@
-# backend/api/services/api_test.py
+# backend/api/tests/api_test.py
 # 外部API疎通確認
 
 import os

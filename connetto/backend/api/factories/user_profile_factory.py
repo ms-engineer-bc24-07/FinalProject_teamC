@@ -1,6 +1,10 @@
 # api/factories/user_profile_factory.py
 import factory
 from api.models.user_profile_model import UserProfile
+from faker import Faker
+
+fake = Faker(locale="ja_JP")  # 日本語データを生成する場合
+
 
 class UserProfileFactory(factory.django.DjangoModelFactory):
     class Meta:
@@ -8,7 +12,7 @@ class UserProfileFactory(factory.django.DjangoModelFactory):
 
     username = factory.Faker("user_name")
     full_name = factory.Faker("name")
-    furigana = factory.Faker("name", locale="ja_JP")  # 日本語名（フリガナ）
+    furigana = factory.Faker("name")  # フリガナ生成
     gender = factory.Iterator(["male", "female"])
     birth_year = factory.Faker("random_int", min=1970, max=2005)
     join_year = factory.Faker("random_int", min=2000, max=2023)
