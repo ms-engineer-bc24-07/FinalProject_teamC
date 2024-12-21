@@ -1,5 +1,6 @@
 # api/factories/participation_factory.py
 import datetime
+import json
 
 import factory
 from api.factories.user_profile_factory import UserProfileFactory
@@ -55,8 +56,15 @@ class ParticipationFactory(factory.django.DjangoModelFactory):
     )
 
     # 希望日程
-    desired_dates = factory.Faker(
-        "date_between",
-        start_date=datetime.date(2024, 12, 1),
-        end_date=datetime.date(2024, 12, 5),
+    desired_dates = factory.LazyAttribute(
+        lambda o: json.dumps(
+            [
+                str(
+                    fake.date_between(
+                        start_date=datetime.date(2024, 12, 1),
+                        end_date=datetime.date(2024, 12, 5),
+                    )
+                )
+            ]
+        )
     )
