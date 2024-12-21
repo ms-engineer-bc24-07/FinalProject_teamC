@@ -1,4 +1,6 @@
 # api/factories/participation_factory.py
+import datetime
+
 import factory
 from api.factories.user_profile_factory import UserProfileFactory
 from api.models.participation_model import Participation
@@ -53,4 +55,8 @@ class ParticipationFactory(factory.django.DjangoModelFactory):
     )
 
     # 希望日程
-    desired_dates = factory.Faker("json")  # ランダムな JSON データ
+    desired_dates = factory.Faker(
+        "date_between",
+        start_date=datetime.date(2024, 12, 1),
+        end_date=datetime.date(2024, 12, 5),
+    )

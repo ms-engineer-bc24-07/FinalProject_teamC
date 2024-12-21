@@ -17,8 +17,9 @@ class UserProfile(models.Model):
     join_year = models.IntegerField()  # 入社年（西暦）
     department = models.CharField(max_length=50)  # 部署
     station = models.CharField(max_length=50)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    # email = models.EmailField(unique=True)
+    # created_at = models.DateTimeField(auto_now_add=True)
+    # updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.username
