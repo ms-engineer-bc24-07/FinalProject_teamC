@@ -1,6 +1,7 @@
 # api/factories/participation_factory.py
 import datetime
 import json
+import random
 
 import factory
 from api.factories.user_profile_factory import UserProfileFactory
@@ -59,12 +60,8 @@ class ParticipationFactory(factory.django.DjangoModelFactory):
     desired_dates = factory.LazyAttribute(
         lambda o: json.dumps(
             [
-                str(
-                    fake.date_between(
-                        start_date=datetime.date(2024, 12, 1),
-                        end_date=datetime.date(2024, 12, 5),
-                    )
-                )
+                f"{str(fake.date_between(start_date=datetime.date(2024, 12, 1), end_date=datetime.date(2024, 12, 5)))} "
+                f"{random.choice(['18:30', '19:00', '19:30', '20:00', '20:30', '21:00'])}"
             ]
         )
     )
