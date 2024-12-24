@@ -193,7 +193,7 @@ export default function AddParticipation() {
                     />
                 </ConditionLayout>
             </div>
-            <PrimaryButton onClick={handleRegister}>登録</PrimaryButton>
+            <PrimaryButton variant="pink" onClick={handleRegister}>登録</PrimaryButton>
             <BottomMenu />
             <ModalConfirmation
                 open={isModalOpen}

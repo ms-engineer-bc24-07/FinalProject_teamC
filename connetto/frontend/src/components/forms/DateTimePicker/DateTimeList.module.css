@@ -1,13 +1,23 @@
+.container {
+    display: flex;
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center; 
+    gap: 10px; 
+    height: 100%; 
+}
+
 .addButton {
-    background-color: #A09CAB;
+    background-color: var(--pink-color);
     color: white; 
     padding: 8px 16px; 
     border-radius: 8px; 
-    width: 100%; 
-    font-size: 16px; 
+    width: 80%;
+    height: 40px; 
+    font-size: 18px; 
     font-weight: bold; 
     text-transform: none; 
-    margin-top: 16px; 
-    transition: background-color 0.3s ease; 
+    margin-top: 3px; 
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 
 }

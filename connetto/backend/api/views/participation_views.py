@@ -69,15 +69,58 @@ class ParticipationView(APIView):
         print("バリデーションエラー:", serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def get(self, request):
-        today = timezone.now().date()
-        participations = Participation.objects.filter(
-            desired_dates__gte=today, 
-            user=request.user  
-        ).order_by('-created_at')
+    def get(self, request, *args, **kwargs):
+        try:
+            pk = kwargs.get('pk')
 
-        participations = Participation.objects.filter(user=request.user)
-        serializer = ParticipationSerializer(participations, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+            if pk:
+                participation = Participation.objects.get(id=pk, user=request.user)
+                serializer = ParticipationSerializer(participation)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            
+            today = timezone.now().date()
+            participations = Participation.objects.filter(
+                desired_dates__gte=today, 
+                user=request.user  
+            ).order_by('-created_at')
+            serializer = ParticipationSerializer(participations, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except Participation.DoesNotExist:
+            return Response({"detail": "指定されたデータが存在しません。"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            print("サーバーエラー:", e)
+            return Response({"detail": "サーバーエラーが発生しました。"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+    def put(self, request, pk):
+        try:
+            participation = Participation.objects.get(pk=pk, user=request.user)
+        except Participation.DoesNotExist:
+            return Response({"detail": "該当する登録内容が見つかりません。"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = ParticipationSerializer(participation, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            Notification.objects.create(
+                user=request.user,
+                title="【変更完了】",
+                body="登録内容が変更されました。内容をご確認ください。",
+            )
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        try:
+            participation = Participation.objects.get(pk=pk, user=request.user)
+        except Participation.DoesNotExist:
+            return Response({"detail": "該当する登録内容が見つかりません。"}, status=status.HTTP_404_NOT_FOUND)
+
+        participation.delete()
+        Notification.objects.create(
+            user=request.user,
+            title="【削除完了】",
+            body="登録内容が削除されました。",
+        )
+        return Response({"detail": "登録内容が削除されました。"}, status=status.HTTP_204_NO_CONTENT)

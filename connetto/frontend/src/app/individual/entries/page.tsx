@@ -54,6 +54,7 @@ export default function MyEntries() {
                     <EntryCard
                         key={entry.id}
                         participation={entry}
+                        onDeleteSuccess={fetchEntries}
                     />
                 ))}
             </div>

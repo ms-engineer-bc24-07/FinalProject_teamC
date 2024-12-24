@@ -1,5 +1,7 @@
 import ActionButton from "@/components/common/ActionButton/ActionButton";
 import React from "react";
+import { useRouter } from "next/navigation";
+import axios from "axios";
 import styles from "./EntryCard.module.css";
 import { formatDate, formatTime } from "@/utils/dateUtils";
 
@@ -15,6 +17,7 @@ type Participation = {
 
 type EntryCardProps = {
     participation: Participation;
+    onDeleteSuccess: () => void;
 };
 
 const conditionLabels: { [key: string]: { [key: string]: string } } = {
@@ -51,7 +54,9 @@ const fieldLabels: { [key: string]: string } = {
     atmosphere_restriction: "お店の雰囲気",
 };
 
-export default function EntryCard({ participation }: EntryCardProps) {
+export default function EntryCard({ participation , onDeleteSuccess}: EntryCardProps) {
+    const router = useRouter();
+
     const today = new Date();
 
     const isEditable = participation.desired_dates.some((date) => {
@@ -62,11 +67,21 @@ export default function EntryCard({ participation }: EntryCardProps) {
     });
 
     const handleEdit = () => {
-        alert("変更画面に遷移します");
+        router.push(`entries/edit/${participation.id}`);
     };
 
-    const handleDelete = () => {
-        alert("削除が確定されました");
+    const handleDelete = async () => {
+        const confirmDelete = window.confirm("本当にこの登録内容を削除しますか？");
+        if (!confirmDelete) return;
+
+        try {
+            await axios.delete(`http://localhost:8000/api/participation/${participation.id}/`);
+            alert("削除が完了しました。");
+            onDeleteSuccess(); 
+        } catch (error) {
+            console.error("削除に失敗しました:", error);
+            alert("削除に失敗しました。もう一度お試しください。");
+        }
     };
 
     const formatConditionValue = (key: string, value: string | number | string[]) => {

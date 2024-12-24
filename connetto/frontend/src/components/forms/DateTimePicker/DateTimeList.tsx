@@ -43,7 +43,7 @@ export default function DateTimeList({ onChange, initialDates = [{ date: "", tim
         };
 
     return (
-        <Box>
+        <Box className={styles.container}>
             {dateTimeList.map((item, index) => (
                 <DateTimePicker
                     key={index}
@@ -55,8 +55,6 @@ export default function DateTimeList({ onChange, initialDates = [{ date: "", tim
                 onClick={handleAdd}
                 className={styles.addButton}
                 variant="contained"
-                color="primary"
-                style={{ marginTop: "10px" }}
             >
                 ＋
             </Button>

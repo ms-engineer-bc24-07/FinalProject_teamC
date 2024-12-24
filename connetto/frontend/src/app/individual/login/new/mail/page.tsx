@@ -9,7 +9,7 @@ import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/utils/firebase";
 
 export default function MailRegister() {
-  const router = useRouter();
+    const router = useRouter();
 
 
     const [email, setEmail] = useState("");
@@ -62,6 +62,12 @@ export default function MailRegister() {
         <div>
             <BackButton />
             <form
+                style={{
+                    marginTop:'100px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '12px',
+                }}
                 onSubmit={(e) => {
                     e.preventDefault();
                     handleRegister();

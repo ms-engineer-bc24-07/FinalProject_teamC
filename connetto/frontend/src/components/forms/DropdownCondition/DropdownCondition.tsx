@@ -1,6 +1,6 @@
 import React from "react";
 import { FormControl, InputLabel, MenuItem, Select, SelectChangeEvent } from "@mui/material";
-
+import styles from "./DropDownCondition.module.css"
 
 type DropdownConditionProps = {
     value: string;
@@ -18,26 +18,18 @@ export default function DropdownCondition({
     return (
         <FormControl
             variant="outlined"
-            sx={{
-                width: "150px", 
-                backgroundColor: "#ffffff", 
-                borderRadius: "8px", 
-                "& .MuiOutlinedInput-notchedOutline": {
-                borderColor: "#ddd", 
-                },
-            }}
+            className={styles.formControl}
             >
             <Select 
                 value={value} 
                 onChange={onChange}
                 displayEmpty
-                sx={{
-                    color: value === "" ? "#9e9e9e" : "#000000", // プレースホルダーの色と選択後の色
-                    fontSize: "14px",
-                }}
+                className={`${styles.select} ${
+                    value === "" ? styles.selectPlaceholder : styles.selectValue
+                }`}
             >
                 <MenuItem value="">
-                    {placeholder} {/* 未選択時に表示するテキスト */}
+                    {placeholder}
                 </MenuItem>
                 {options.map((option, index) => (
                 <MenuItem key={index} value={option.value}>

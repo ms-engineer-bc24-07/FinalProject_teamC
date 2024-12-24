@@ -13,6 +13,7 @@ urlpatterns = [
 
     path("user-profile/", UserProfileView.as_view(), name="user-profile"),
     path('participation/', ParticipationView.as_view(), name='participation'),
+    path("participation/<int:pk>/", ParticipationView.as_view(), name="notification-detail"),
     path('notifications/', NotificationView.as_view(), name='notifications'),
     path('notifications/<int:notification_id>/', NotificationDetailView.as_view(), name='notification-detail'),
     path('notifications/unread-count/', UnreadNotificationsCountView.as_view(), name='unread-notifications-count'),
