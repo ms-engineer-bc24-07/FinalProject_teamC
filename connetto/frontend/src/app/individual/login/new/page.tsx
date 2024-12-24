@@ -27,7 +27,6 @@ export default function CorporateLogin() {
             if (!querySnapshot.empty) {
                 const companyData = querySnapshot.docs[0].data();
 
-                // パスワードを検証あとでハッシュ化すること（テスト用: プレーンテキスト）
                 if (companyData.password === password) {
                     router.push("/individual/login/new/mail");
                 } else {
@@ -45,7 +44,10 @@ export default function CorporateLogin() {
     return (
         <div>
             <BackButton />
-            <form onSubmit={(e) => e.preventDefault()}>
+            <form 
+                style={{marginTop:'150px'}}
+                onSubmit={(e) => e.preventDefault()}
+            >
                 <InputField 
                     type="text" 
                     placeholder="企業コード"

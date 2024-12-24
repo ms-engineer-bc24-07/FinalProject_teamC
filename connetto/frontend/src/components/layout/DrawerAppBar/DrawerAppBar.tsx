@@ -76,7 +76,7 @@ export default function DrawerAppBar(props: Props) {
                 width: '100%',
                 height: '40px',
                 zIndex: 1000,
-                backgroundColor: '#f5f5f5',
+                backgroundColor: '#85cad0',
                 boxShadow: 'none',
             }}
         >

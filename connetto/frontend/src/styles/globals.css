@@ -2,6 +2,20 @@
   --background: #ffffff;
   --foreground: #171717;
   --header-height: 60px;
+  --text-color: #545454; 
+  --blue-color: #85cad0; 
+  --yellow-color: #e5d04b; 
+  --green-color: #02bf63; 
+  --pink-color: #ffa5b2; 
+
+  /* ホバーや押した時用の色 */
+  --blue-hover: #6ab4b7; 
+  --yellow-hover: #c4b237; 
+  --green-hover: #02994e; 
+  --pink-hover: #e0919e; 
+
+  /* 文字のホバーや押した時の色*/
+  --text-hover: #3c3c3c;
 }
 
 body {
@@ -12,6 +26,10 @@ body {
 main {
   margin-top: var(--header-height);
   padding: 20px;
+}
+
+.MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: var(--text-color) !important; /* !importantで優先度を上げる */
 }
 
 @media (prefers-color-scheme: dark) {

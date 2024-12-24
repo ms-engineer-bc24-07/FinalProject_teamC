@@ -9,6 +9,7 @@ type PrimaryButtonProps = {
     onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
     disabled?: boolean;
     type?: "button" | "submit" | "reset";
+    variant?: "blue" | "pink";
 };
 
 export default function PrimaryButton({
@@ -16,14 +17,15 @@ export default function PrimaryButton({
     onClick,
     disabled = false,
     type = "button",
-
+    variant = "blue",
 }: PrimaryButtonProps) {
-  return (
+    return (
     <div className={styles.container}>
-
         <button
             type={type} 
-            className={`${styles.button} ${disabled ? styles.disabled : ""}`}
+            className={`${styles.button} ${
+                variant === "blue" ? styles["button-blue"] : styles["button-pink"]
+            } ${disabled ? styles.disabled : ""}`}
             onClick={onClick}
             disabled={disabled}
         >
@@ -31,5 +33,5 @@ export default function PrimaryButton({
         </button>
 
     </div>
-  );
+    );
 }
