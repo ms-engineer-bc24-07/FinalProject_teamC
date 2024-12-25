@@ -15,5 +15,6 @@ venv/
 .env.local
 
 backend/firebase_credentials.json
+node_modules
 init.sql
 frontend/node_modules

@@ -57,7 +57,7 @@ export default function BottomMenu() {
                     pathname === "/individual/notifications" ? styles.active : ""
                 }`}
             >
-                <NotificationBadge unreadCount={unreadCount} className={styles.icon} />
+                <NotificationBadge className={styles.icon} />
                 <span>Notification</span>
             </Link>
         </div>
