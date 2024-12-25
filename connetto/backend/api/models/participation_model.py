@@ -1,5 +1,3 @@
-# api/models/participation_model.py
-
 from django.db import models
 from django.contrib.auth.models import User  # Djangoのデフォルトユーザーモデルを使用
 

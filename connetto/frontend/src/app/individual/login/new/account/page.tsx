@@ -39,7 +39,6 @@ export default function AccountRegister() {
         { value: "female", label: "女性" },
     ];
 
-    // 修正された handleChange 関数
     const handleChange = (key: keyof typeof formData, value: string) => {
         setFormData({ ...formData, [key]: value });
     };
@@ -111,15 +110,15 @@ export default function AccountRegister() {
                     label="氏名"
                     type="text"
                     name="full_name"
-                    placeholder="姓と名の間にスペースを入れてください"
+                    placeholder="姓と名の間にスペース"
                     value={formData.full_name}
                     onChange={(e) => handleChange("full_name", e.target.value)}
                 />
                 <InputField
-                    label="氏名（フリガナ）"
+                    label="フリガナ"
                     type="text"
                     name="furigana"
-                    placeholder="セイとメイの間にスペースを入れてください"
+                    placeholder="セイとメイの間にスペース"
                     value={formData.furigana}
                     onChange={(e) => handleChange("furigana", e.target.value)}
                 />

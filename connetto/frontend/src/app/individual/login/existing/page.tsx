@@ -34,7 +34,8 @@ export default function Existing() {
 return (
     <div>
         <BackButton/>
-        <form
+        <form 
+            style={{marginTop:'150px'}}
             onSubmit={(e) => {
                 e.preventDefault(); 
                 handleLogin(e as unknown as React.MouseEvent<HTMLButtonElement>);
@@ -53,6 +54,17 @@ return (
                 onChange={(e) => setPassword(e.target.value)}
             />
             {error && <p style={{ color: "red", marginTop: "10px" }}>{error}</p>}
+            <p 
+                style={{
+                    fontSize: '12px', 
+                    fontWeight:'bold', 
+                    textAlign: 'right',
+                    marginBottom: '30px',
+                    color: '#545454'
+                }}
+            >
+                パスワードをお忘れの場合はこちら
+            </p>
             <PrimaryButton onClick={(e) => handleLogin(e)}>ログイン</PrimaryButton>
         </form>
     </div>

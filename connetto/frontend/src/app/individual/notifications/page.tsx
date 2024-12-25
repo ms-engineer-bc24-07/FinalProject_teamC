@@ -1,49 +1,55 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import NotificationCard from "@/components/notifications/NotificationCard/NotificationCard";
 import DrawerAppBar from "@/components/layout/DrawerAppBar/DrawerAppBar";
 import BottomMenu from "@/components/layout/BottomMenu/BottomMenu";
+import api from "@/utils/api";
 
-
-const mockNotifications = [
-    {
-        id: 1,
-        title: "【登録完了】",
-        body: "行きたい登録が完了しました！ありがとうございます。",
-        timestamp: "2024-12-01 18:23",
-        isRead: false,
-    },
-    {
-        id: 2,
-        title: "【リマインド：本日開催】",
-        body: "本日、12月19日（火）18時開催です。ご参加お忘れなく！",
-        timestamp: "2024-12-01 11:45",
-        isRead: true,
-    },
-];
+type Notification = {
+    id: number;
+    title: string;
+    body: string;
+    created_at: string;
+    is_read: boolean;
+};
 
 export default function NotificationsPage() {
+    const [notifications, setNotifications] = useState<Notification[]>([]);
     const router = useRouter();
 
+    const fetchNotifications = async () => {
+        try {
+            const response = await api.get("/notifications/");
+            setNotifications(response.data);
+        } catch (error) {
+            console.error("通知の取得に失敗しました:", error);
+        }
+    };
+
+    useEffect(() => {
+        fetchNotifications();
+    }, []);
+
     const handleCardClick = (id: number) => {
-        router.push(`/notifications/${id}`); // 動的ルートに遷移
+        router.push(`/individual/notifications/${id}`); 
     };
 
     return (
         <div>
             <DrawerAppBar />
-            <div style={{ marginTop: '40px' }}>
-                {mockNotifications.map((notification) => (
-                <NotificationCard
-                    key={notification.id}
-                    title={notification.title}
-                    body={notification.body}
-                    timestamp={notification.timestamp}
-                    isRead={notification.isRead}
-                    onClick={() => handleCardClick(notification.id)}
-                />
+            <div style={{ marginTop: "40px" }}>
+                {notifications.map((notification) => (
+                    <NotificationCard
+                        key={notification.id} 
+                        id={notification.id} 
+                        title={notification.title}
+                        body={notification.body}
+                        timestamp={notification.created_at}
+                        isRead={notification.is_read}
+                        onClick={() => handleCardClick(notification.id)}
+                    />
                 ))}
             </div>
             <BottomMenu />
