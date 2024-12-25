@@ -18,8 +18,8 @@ from django.test import TestCase
 class GroupServiceTestCase(TestCase):
     def setUp(self):
         # テスト用データのセットアップ
-        self.user_profiles = UserProfileFactory.create_batch(30)
-        self.participations = ParticipationFactory.create_batch(30)
+        self.user_profiles = UserProfileFactory.create_batch(20)
+        self.participations = ParticipationFactory.create_batch(20)
 
         # ユーザーとその参加データを関連付ける
         for user_profile, participation in zip(self.user_profiles, self.participations):
@@ -64,6 +64,19 @@ class GroupServiceTestCase(TestCase):
             user_profile.atmosphere_preference = atmosphere_preference
             user_profile.save()
 
+            print(
+                f"ユーザー名: {user_profile.username}, フルネーム: {user_profile.full_name}, 性別: {user_profile.gender}, "
+                f"生年: {user_profile.birth_year}, 入社年: {user_profile.join_year}, 所属部署: {user_profile.department}, "
+                f"最寄り駅: {user_profile.station}\n"
+                f"飲み会いきたい希望条件登録:\n"
+                f"- 希望日時: {desired_dates}\n"
+                f"- 性別: {gender_restriction}\n"
+                f"- 年代: {age_restriction}\n"
+                f"- 入社年: {joining_year_restriction}\n"
+                f"- 部署: {department_restriction}\n"
+                f"- お店の雰囲気: {atmosphere_preference}"
+            )
+
     # ここからグループ分けスタート
     def test_group_users_by_date_and_preference(self):
         """
@@ -100,71 +113,75 @@ class GroupServiceTestCase(TestCase):
         for date, participations in grouped_by_date.items():
             scored_users = []
 
-        for participation in participations:
-            user = participation.user
-            score = 0
+            for participation in participations:
+                user = participation.user
+                score = 0
 
-            # 希望条件に基づいてスコアリング
+                # 希望条件に基づいてスコアリング
 
-            # 性別制限スコアリング
-            if (
-                participation.gender_restriction == "same_gender"
-                and user.gender == participation.user.gender
-            ):
-                score += settings.SCORING_WEIGHTS["性別制限"]["同性"]
-            else:
-                score += settings.SCORING_WEIGHTS["性別制限"]["希望なし"]
+                # 性別制限スコアリング
+                if (
+                    participation.gender_restriction == "same_gender"
+                    and participation.user.gender == participation.user.gender
+                ):
+                    score += settings.SCORING_WEIGHTS["性別制限"]["同性"]
+                else:
+                    score += settings.SCORING_WEIGHTS["性別制限"]["希望なし"]
 
-            # 年代制限スコアリング
-            if (
-                participation.age_restriction == "same_age"
-                and user.birth_year == participation.user.birth_year
-            ):
-                score += settings.SCORING_WEIGHTS["年代制限"]["同年代"]
-            else:
-                score += settings.SCORING_WEIGHTS["年代制限"]["希望なし"]
+                # 年代制限スコアリング
+                if (
+                    participation.age_restriction == "same_age"
+                    and participation.user.birth_year == participation.user.birth_year
+                ):
+                    score += settings.SCORING_WEIGHTS["年代制限"]["同年代"]
+                else:
+                    score += settings.SCORING_WEIGHTS["年代制限"]["希望なし"]
 
-            # 部署制限スコアリング
-            if (
-                participation.department_restriction == "same_department"
-                and user.department == participation.user.department
-            ):
-                score += settings.SCORING_WEIGHTS["部署希望"]["所属部署内希望"]
-            else:
-                score += settings.SCORING_WEIGHTS["部署希望"]["希望なし"]
+                # 部署制限スコアリング
+                if (
+                    participation.department_restriction == "same_department"
+                    and participation.user.department == participation.user.department
+                ):
+                    score += settings.SCORING_WEIGHTS["部署希望"]["所属部署内希望"]
+                else:
+                    score += settings.SCORING_WEIGHTS["部署希望"]["希望なし"]
 
-            # お店の雰囲気制限スコアリング
-            if (
-                participation.atmosphere_preference == "calm"
-                and user.shop_preference == "calm"
-            ):
-                score += settings.SCORING_WEIGHTS["お店の雰囲気"]["落ち着いたお店"]
-            elif (
-                participation.atmosphere_preference == "lively"
-                and user.shop_preference == "lively"
-            ):
-                score += settings.SCORING_WEIGHTS["お店の雰囲気"]["わいわいできるお店"]
-            else:
-                score += settings.SCORING_WEIGHTS["お店の雰囲気"]["希望なし"]
+                # お店の雰囲気制限スコアリング
+                if (
+                    participation.atmosphere_preference == "calm"
+                    and participation.user.shop_preference == "calm"
+                ):
+                    score += settings.SCORING_WEIGHTS["お店の雰囲気"]["落ち着いたお店"]
+                elif (
+                    participation.atmosphere_preference == "lively"
+                    and participation.user.shop_preference == "lively"
+                ):
+                    score += settings.SCORING_WEIGHTS["お店の雰囲気"][
+                        "わいわいできるお店"
+                    ]
+                else:
+                    score += settings.SCORING_WEIGHTS["お店の雰囲気"]["希望なし"]
 
-            # 他の条件も追加可能...
-            scored_users.append((user, score))
+                # 他の条件も追加可能...
+                scored_users.append((user, score))
 
-        # スコア順にソートし、3～6人のグループを作成
-        scored_users.sort(key=lambda x: x[1], reverse=True)
-        selected_group = scored_users[: random.randint(3, 6)]  # 3～6人をランダムで選出
-        final_groups.append(
-            [user[0] for user in selected_group]
-        )  # ユーザーのみをグループに追加
+            # スコア順にソートし、3～6人のグループを作成
+            scored_users.sort(key=lambda x: x[1], reverse=True)
+            selected_group = scored_users[
+                : random.randint(3, 6)
+            ]  # 3～6人をランダムで選出
+            final_groups.append(
+                [user[0] for user in selected_group]
+            )  # ユーザーのみをグループに追加
 
-        # スコアリング結果と選出されたグループを表示
-        print("\n==== スコアリング結果 ====")
-        for user, score in scored_users:
-            print(f"ユーザー: {user.full_name}, スコア: {score}")
+            # スコアリング結果と選出されたグループを表示
+            print("\n==== スコアリング結果 ====")
+            for user, score in scored_users:
+                print(f"ユーザー: {user.full_name}, スコア: {score}")
 
-        print("\n==== 選出されたグループ ====")
-        for user in selected_group:
-            print(f"  {user[0].full_name} (スコア: {user[1]})")
+            print("\n==== 選出されたグループ ====")
+            for user, score in selected_group:
+                print(f"  {user.full_name} (スコア: {score})")
 
         return final_groups
 
