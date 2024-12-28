@@ -7,8 +7,7 @@ import factory
 from api.factories.user_profile_factory import UserProfileFactory
 from api.models.participation_model import Participation
 from faker import Faker
-
-# from datetime import datetime, timedelta
+import datetime
 
 fake = Faker(locale="ja_JP")  # 日本語ロケールのFaker
 
@@ -59,7 +58,8 @@ class ParticipationFactory(factory.django.DjangoModelFactory):
     # 希望日程
     desired_dates = factory.LazyAttribute(
         lambda o: [
-             f"{str(fake.date_between(start_date=datetime.date(2024, 12, 1), end_date=datetime.date(2024, 12, 3)))} "
-             f"{random.choice(['18:30', '19:00'])}"
+            f"{str(fake.date_between(start_date=datetime.date(2024, 12, 1), end_date=datetime.date(2024, 12, 3)))} "
+            f"{random.choice(['18:30', '19:00'])}"
+            for _ in range(random.randint(1, 3))  # 1～3件の日時を生成
         ]
     )
