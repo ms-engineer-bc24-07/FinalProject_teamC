@@ -46,7 +46,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-    - ./init.sql:/docker-entrypoint-initdb.d/init.sql  # ここでinit.sqlを読み込む設定
+    -  db_data:/var/lib/postgresql/data
 
 volumes:
   db_data:
