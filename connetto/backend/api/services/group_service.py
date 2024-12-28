@@ -1,9 +1,9 @@
 # backend/api/services/group_service.py
 # グループ分けのロジック
 
-import json
+import json #希望日時で絞り込み
 import random
-from collections import defaultdict
+from collections import defaultdict #希望日時で絞り込み
 
 from api.models.group_member_model import GroupMember  # グループメンバーモデル
 from api.models.group_model import Group  # Groupモデルをインポート（グループ作成に必要）
@@ -14,21 +14,19 @@ from django.conf import settings  # settings.py のスコア設定をインポ�
 
 def group_users_by_date_and_preference():
     """
-    ユーザーの飲み会希望日を基にグループ分けする関数。
+    ユーザーの希望日字を基にグループ分けする関数。
     """
-    # ユーザーの飲み会希望日を基にグループ分け
-    user = UserProfile.objects.all()  # User モデルから直接ユーザー情報を取得
+    # 希望条件を取得
     participations = Participation.objects.all()
 
     # 希望日ごとにユーザーをグループ化
-    grouped_by_date = defaultdict(list)
+    grouped_by_date = defaultdict(list) # 希望日ごとにユーザーを格納するための辞書
 
+    # 希望日時ごとにグループ化
     for participation in participations:
-        user = participation.user
-        # 希望日でグループ化
-        desired_dates = json.loads(participation.desired_dates)
+        desired_dates = participation.desired_dates  # 希望日時を取得
         
-       # 希望日が設定されていれば、その日付を使う
+        # 希望日が設定されていれば、その日付を使う
         if isinstance(desired_dates, list) and desired_dates:
             desired_date = desired_dates[0]  # 最初の希望日時を使用
             grouped_by_date[desired_date].append(participation)
@@ -42,8 +40,8 @@ def group_users_by_date_and_preference():
             full_name = user_profile.full_name
             print(f"    ユーザー: {full_name}")
 
-    # 希望日ごとにグループを作成
-    final_groups = []
+    # 最終的に希望日ごとにグループ化されたデータを返す
+    return grouped_by_date
 
     for date, participations in grouped_by_date.items():
         pair_scores = []
