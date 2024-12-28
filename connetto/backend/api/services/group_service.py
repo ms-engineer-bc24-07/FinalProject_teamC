@@ -1,6 +1,7 @@
 # backend/api/services/group_service.py
 # グループ分けのロジック
 
+import json
 import random
 from collections import defaultdict
 
@@ -17,99 +18,99 @@ def group_users_by_date_and_preference():
     """
     # ユーザーの飲み会希望日を基にグループ分け
     user = UserProfile.objects.all()  # User モデルから直接ユーザー情報を取得
-    preferences = Participation.objects.all()
+    participations = Participation.objects.all()
 
-    # 希望日ごとにユーザーをグループ化、企業ごとのサブグループを作成
-    grouped_by_date_and_company = defaultdict(lambda: defaultdict(list))
+    # 希望日ごとにユーザーをグループ化
+    grouped_by_date = defaultdict(list)
 
-    for preference in preferences:
-        user = preference.user
-        # ユーザーが所属する企業と希望日でグループ化
-        grouped_by_date_and_company[preference.desired_date][user.company].append(
-            preference
-        )
+    for participation in participations:
+        user = participation.user
+        # 希望日でグループ化
+        desired_dates = json.loads(participation.desired_dates)
+        
+       # 希望日が設定されていれば、その日付を使う
+        if isinstance(desired_dates, list) and desired_dates:
+            desired_date = desired_dates[0]  # 最初の希望日時を使用
+            grouped_by_date[desired_date].append(participation)
 
     # グループ分けの途中経過を表示
-    print("\n==== 希望日と企業ごとのグループ分け ====")
-    for date, company_groups in grouped_by_date_and_company.items():
+    print("\n==== 希望日ごとのグループ分け ====")
+    for date, participation_list in grouped_by_date.items():
         print(f"\n希望日: {date}")
-        for company, preferences in company_groups.items():
-            print(f"  企業: {company}")
-            for preference in preferences:
-                print(f"    ユーザー: {preference.user.name}")
+        for participation in participation_list:
+            user_profile = participation.user
+            full_name = user_profile.full_name
+            print(f"    ユーザー: {full_name}")
 
-    # 希望日ごとに、スコアリングしてグループを作成
+    # 希望日ごとにグループを作成
     final_groups = []
 
-    for date, company_groups in grouped_by_date_and_company.items():
-        scored_users = []
+    for date, participations in grouped_by_date.items():
+        pair_scores = []
 
-        for company, preferences in company_groups.items():
-            for preference in preferences:
-                user = preference.user
+        # 2人ずつ比較してスコアを計算
+        for i, participation1 in enumerate(participations):
+            user1 = participation1.user
+            for j, participation2 in enumerate(participations):
+                if i >= j:
+                    continue  # 同じユーザー同士の比較はしない
+
+                user2 = participation2.user
                 score = 0
 
-            # 希望条件に基づいてスコアリング
+                # 性別比較
+                if participation1.gender_restriction == participation2.gender_restriction:
+                    if user1.gender == user2.gender:
+                        score += settings.SCORING_WEIGHTS["性別制限"]["同性"]
+                    else:
+                        score += settings.SCORING_WEIGHTS["性別制限"]["希望なし"]
 
-            # 性別制限スコアリング
-            if (
-                preference.gender_restriction == "same_gender"
-                and user.gender == preference.user.gender
-            ):
-                score += settings.SCORING_WEIGHTS["性別制限"]["同性"]
-            else:
-                score += settings.SCORING_WEIGHTS["性別制限"]["希望なし"]
+                # 年代比較
+                if participation1.age_restriction == participation2.age_restriction:
+                    if user1.birth_year == user2.birth_year:
+                        score += settings.SCORING_WEIGHTS["年代制限"]["同年代"]
+                    else:
+                        score += settings.SCORING_WEIGHTS["年代制限"]["希望なし"]
 
-            # 年代制限スコアリング
-            if (
-                preference.age_restriction == "same_age"
-                and user.birth_year == preference.user.birth_year
-            ):
-                score += settings.SCORING_WEIGHTS["年代制限"]["同年代"]
-            else:
-                score += settings.SCORING_WEIGHTS["年代制限"]["希望なし"]
+                # 部署比較
+                if participation1.department_restriction == participation2.department_restriction:
+                    if user1.department == user2.department:
+                        score += settings.SCORING_WEIGHTS["部署希望"]["所属部署内希望"]
+                    else:
+                        score += settings.SCORING_WEIGHTS["部署希望"]["希望なし"]
 
-            # 部署制限スコアリング
-            if (
-                preference.department_restriction == "same_department"
-                and user.department == preference.user.department
-            ):
-                score += settings.SCORING_WEIGHTS["部署希望"]["所属部署内希望"]
-            else:
-                score += settings.SCORING_WEIGHTS["部署希望"]["希望なし"]
+                # お店の雰囲気比較
+                if participation1.shop_atmosphere_restriction == participation2.shop_atmosphere_restriction:
+                    if user1.shop_preference == user2.shop_preference:
+                        score += settings.SCORING_WEIGHTS["お店の雰囲気"]["一致"]
+                    else:
+                        score += settings.SCORING_WEIGHTS["お店の雰囲気"]["希望なし"]
 
-            # お店の雰囲気制限スコアリング
-            if (
-                preference.shop_atmosphere_restriction == "calm"
-                and user.shop_preference == "calm"
-            ):
-                score += settings.SCORING_WEIGHTS["お店の雰囲気"]["落ち着いたお店"]
-            elif (
-                preference.shop_atmosphere_restriction == "lively"
-                and user.shop_preference == "lively"
-            ):
-                score += settings.SCORING_WEIGHTS["お店の雰囲気"]["わいわいできるお店"]
-            else:
-                score += settings.SCORING_WEIGHTS["お店の雰囲気"]["希望なし"]
+                # 他の希望条件があれば、ここで追加
 
-            # 他の条件も追加可能...
-            scored_users.append((user, score))
+                # ペアごとのスコアを記録
+                pair_scores.append(((user1, user2), score))
 
-        # スコア順にソートし、3～6人のグループを作成
-        scored_users.sort(key=lambda x: x[1], reverse=True)
-        selected_group = scored_users[: random.randint(3, 6)]  # 3～6人をランダムで選出
-        final_groups.append(
-            [user[0] for user in selected_group]
-        )  # ユーザーのみをグループに追加
+        # スコア順にソート
+        pair_scores.sort(key=lambda x: x[1], reverse=True)
 
-        # スコアリング結果と選出されたグループを表示
-        print("\n==== スコアリング結果 ====")
-        for user, score in scored_users:
-            print(f"ユーザー: {user.name}, スコア: {score}")
+        # 上位のペアをグループに追加（最大6人まで）
+        selected_pairs = pair_scores[:random.randint(3, 6)]
+        selected_users = set()
+        for pair, _ in selected_pairs:
+            selected_users.update(pair)
 
-        print("\n==== 選出されたグループ ====")
-        for user in selected_group:
-            print(f"  {user[0].name} (スコア: {user[1]})")
+        # ユーザーリストをグループとしてまとめる
+        final_groups.append(list(selected_users))
+
+        # スコアリング結果を表示
+        print("\n==== ペアごとのスコアリング結果 ====")
+        for (user1, user2), score in pair_scores:
+            print(f"ペア: {user1.name} と {user2.name}, スコア: {score}")
+
+        print("\n==== 選ばれたグループ ====")
+        for user in selected_users:
+            print(f"  {user.name}")
 
     return final_groups
 
