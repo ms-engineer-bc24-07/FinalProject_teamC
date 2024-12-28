@@ -4,7 +4,7 @@
 import json #希望日時で絞り込み
 import random
 from collections import defaultdict #希望日時で絞り込み
-from datetime import datetime, timedelta  # 追加: 日付操作のため
+from datetime import datetime, timedelta  # 日付操作のため
 
 from api.models.group_member_model import GroupMember  # グループメンバーモデル
 from api.models.group_model import Group  # Groupモデルをインポート（グループ作成に必要）
@@ -21,16 +21,14 @@ def group_users_by_date_and_preference():
     # 現在の日付を取得
     today = datetime.today()
     
-    # 希望日（テスト用）
-    desired_dates = "2024-12-28"  # 文字列で希望日を設定
+    # 希望日から3日前を計算
+    three_days_before = today - timedelta(days=3)
 
-    if today >= today - timedelta(days=3):
+    # 現在日付が3日前を過ぎているかを確認
+    if today >= three_days_before:
         print("グループ分けを開始します")
     else:
         print("まだグループ分けを開始できません")
-    
-    # 希望日から3日前を計算
-    three_days_before = today - timedelta(days=3)
 
     # 希望条件を取得
     participations = Participation.objects.all() # Participationモデルから全データを取得
@@ -49,13 +47,48 @@ def group_users_by_date_and_preference():
         
         # 希望日が設定されていれば、その日付を使う
         if isinstance(desired_dates, list) and desired_dates:
+            # 希望日を一意にする
+            unique_dates = list(set(desired_dates))  # 重複を排除
+
             # 各希望日時を処理
-            for date_str in desired_dates:
-                date = datetime.strptime(date_str, "%Y-%m-%d")
+            for date_str in unique_dates:
+                # 余計な空白を削除
+                date_str = date_str.strip()  # 空白の削除
+
+                # もし時間部分が含まれている場合、時間部分を切り取る
+                if " " in date_str:
+                    date_str = date_str.split(" ")[0]  # 時間を取り除く
+
+                # 時間部分を含むフォーマットに対応
+                try:
+                    # 日付と時間を含むフォーマット
+                    date = datetime.strptime(date_str, "%Y-%m-%d %H:%M") 
+                except ValueError:
+                    try:
+                        # 時間部分がない場合
+                        date = datetime.strptime(date_str, "%Y-%m-%d") 
+                    except ValueError:
+                        print(f"無効な日時形式: {date_str}")
+                        continue  # 次の希望日時へ進む
                 
                 # 希望日が3日前を過ぎていればグループ分け
                 if date <= three_days_before:
-                    grouped_by_date[date].append(participation)
+                    grouped_by_date[date.date()].append(participation)
+
+        else:
+            # 単一の希望日がある場合
+            date_str = desired_dates.strip()
+            if " " in date_str:
+                date_str = date_str.split(" ")[0]  # 時間を取り除く
+
+            try:
+                date = datetime.strptime(date_str, "%Y-%m-%d")
+            except ValueError:
+                print(f"無効な日時形式: {date_str}")
+                continue  # 次の参加者へ進む
+
+            if date <= three_days_before:
+                grouped_by_date[date.date()].append(participation)
 
     # グループ分けの途中経過を表示
     print("\n==== 希望日ごとのグループ分け ====")
@@ -67,7 +100,11 @@ def group_users_by_date_and_preference():
             print(f"    ユーザー: {full_name}")
 
     # グループ分けされたデータが正しく格納されているか確認
-    print(f"グループ分けされたデータ: {grouped_by_date}")
+        print("\n==== グループ分けされたデータ ====")
+        for date, participation_list in grouped_by_date.items():
+            print(f"\n希望日: {date}")
+            user_names = [participation.user.full_name for participation in participation_list]
+            print(f"    ユーザー: {', '.join(user_names)}")
 
     # 最終的に希望日ごとにグループ化されたデータを返す
     return grouped_by_date
