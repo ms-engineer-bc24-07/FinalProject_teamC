@@ -100,15 +100,18 @@ def group_users_by_date_and_preference():
             print(f"    ユーザー: {full_name}")
 
     # グループ分けされたデータが正しく格納されているか確認
-        print("\n==== グループ分けされたデータ ====")
-        for date, participation_list in grouped_by_date.items():
+    print("\n==== グループ分けされたデータ ====")
+    for date, participation_list in grouped_by_date.items():
             print(f"\n希望日: {date}")
             user_names = [participation.user.full_name for participation in participation_list]
             print(f"    ユーザー: {', '.join(user_names)}")
 
     # 最終的に希望日ごとにグループ化されたデータを返す
-    return grouped_by_date
+    #return grouped_by_date
 
+    final_groups = [] # 最終的なグループを格納するリスト
+
+    # 最終的に希望日ごとにグループ化されたデータを返す前にグループ分けを行う
     for date, participations in grouped_by_date.items():
         pair_scores = []
 
@@ -131,15 +134,27 @@ def group_users_by_date_and_preference():
 
                 # 年代比較
                 if participation1.age_restriction == participation2.age_restriction:
-                    if user1.birth_year == user2.birth_year:
-                        score += settings.SCORING_WEIGHTS["年代制限"]["同年代"]
+                    if participation1.age_restriction == "同年代":
+                        # 生まれ年の差が4歳以内ならスコアを加算
+                        if abs(user1.birth_year - user2.birth_year) <= 4:
+                            score += settings.SCORING_WEIGHTS["年代制限"]["同年代"]
+                    elif participation1.age_restriction == "幅広い年代":
+                        score += settings.SCORING_WEIGHTS["年代制限"]["幅広い年代"]
                     else:
                         score += settings.SCORING_WEIGHTS["年代制限"]["希望なし"]
+
+                # 入社年比較 
+                if participation1.join_year == participation2.join_year:
+                    score += settings.SCORING_WEIGHTS["入社年"]["完全一致"]
+                else:
+                    score += settings.SCORING_WEIGHTS["入社年"]["希望なし"]
 
                 # 部署比較
                 if participation1.department_restriction == participation2.department_restriction:
                     if user1.department == user2.department:
                         score += settings.SCORING_WEIGHTS["部署希望"]["所属部署内希望"]
+                    elif participation1.department_restriction == "他部署混在":
+                        score += settings.SCORING_WEIGHTS["部署希望"]["他部署混在"]
                     else:
                         score += settings.SCORING_WEIGHTS["部署希望"]["希望なし"]
 
@@ -150,8 +165,6 @@ def group_users_by_date_and_preference():
                     else:
                         score += settings.SCORING_WEIGHTS["お店の雰囲気"]["希望なし"]
 
-                # 他の希望条件があれば、ここで追加
-
                 # ペアごとのスコアを記録
                 pair_scores.append(((user1, user2), score))
 
@@ -159,10 +172,11 @@ def group_users_by_date_and_preference():
         pair_scores.sort(key=lambda x: x[1], reverse=True)
 
         # 上位のペアをグループに追加（最大6人まで）
-        selected_pairs = pair_scores[:random.randint(3, 6)]
         selected_users = set()
-        for pair, _ in selected_pairs:
+        for pair, _ in pair_scores:
             selected_users.update(pair)
+            if len(selected_users) >= 6:
+                break
 
         # ユーザーリストをグループとしてまとめる
         final_groups.append(list(selected_users))
