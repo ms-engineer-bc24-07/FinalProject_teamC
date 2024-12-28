@@ -58,10 +58,8 @@ class ParticipationFactory(factory.django.DjangoModelFactory):
 
     # 希望日程
     desired_dates = factory.LazyAttribute(
-        lambda o: json.dumps(
-            [
-                f"{str(fake.date_between(start_date=datetime.date(2024, 12, 1), end_date=datetime.date(2024, 12, 3)))} "
-                f"{random.choice(['18:30', '19:00'])}"
-            ]
-        )
+        lambda o: [
+             f"{str(fake.date_between(start_date=datetime.date(2024, 12, 1), end_date=datetime.date(2024, 12, 3)))} "
+             f"{random.choice(['18:30', '19:00'])}"
+        ]
     )

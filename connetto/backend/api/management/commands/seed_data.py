@@ -26,7 +26,9 @@ class Command(BaseCommand):
                     days=random.randint(0, 5)
                 )  # 日時をランダムに決定
                 ParticipationFactory.create(
-                    user=user, desired_dates=dumps([str(desired_date)])
+                    user=user, desired_dates=[
+                        str(desired_date)
+                    ]
                 )
 
         self.stdout.write(

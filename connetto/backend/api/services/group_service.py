@@ -4,6 +4,7 @@
 import json #希望日時で絞り込み
 import random
 from collections import defaultdict #希望日時で絞り込み
+from datetime import datetime, timedelta  # 追加: 日付操作のため
 
 from api.models.group_member_model import GroupMember  # グループメンバーモデル
 from api.models.group_model import Group  # Groupモデルをインポート（グループ作成に必要）
@@ -15,9 +16,29 @@ from django.conf import settings  # settings.py のスコア設定をインポ�
 def group_users_by_date_and_preference():
     """
     ユーザーの希望日字を基にグループ分けする関数。
+    希望日から3日前を過ぎた場合にグループ分けを開始する。
     """
+    # 現在の日付を取得
+    today = datetime.today()
+    
+    # 希望日（テスト用）
+    desired_dates = "2024-12-28"  # 文字列で希望日を設定
+
+    if today >= today - timedelta(days=3):
+        print("グループ分けを開始します")
+    else:
+        print("まだグループ分けを開始できません")
+    
+    # 希望日から3日前を計算
+    three_days_before = today - timedelta(days=3)
+
     # 希望条件を取得
-    participations = Participation.objects.all()
+    participations = Participation.objects.all() # Participationモデルから全データを取得
+
+    # 希望日時が正しく取得されているかを確認
+    for participation in participations:
+        desired_dates = participation.desired_dates
+        print(f"ユーザー: {participation.user.full_name}, 希望日: {desired_dates}")
 
     # 希望日ごとにユーザーをグループ化
     grouped_by_date = defaultdict(list) # 希望日ごとにユーザーを格納するための辞書
@@ -28,8 +49,13 @@ def group_users_by_date_and_preference():
         
         # 希望日が設定されていれば、その日付を使う
         if isinstance(desired_dates, list) and desired_dates:
-            desired_date = desired_dates[0]  # 最初の希望日時を使用
-            grouped_by_date[desired_date].append(participation)
+            # 各希望日時を処理
+            for date_str in desired_dates:
+                date = datetime.strptime(date_str, "%Y-%m-%d")
+                
+                # 希望日が3日前を過ぎていればグループ分け
+                if date <= three_days_before:
+                    grouped_by_date[date].append(participation)
 
     # グループ分けの途中経過を表示
     print("\n==== 希望日ごとのグループ分け ====")
@@ -39,6 +65,9 @@ def group_users_by_date_and_preference():
             user_profile = participation.user
             full_name = user_profile.full_name
             print(f"    ユーザー: {full_name}")
+
+    # グループ分けされたデータが正しく格納されているか確認
+    print(f"グループ分けされたデータ: {grouped_by_date}")
 
     # 最終的に希望日ごとにグループ化されたデータを返す
     return grouped_by_date
