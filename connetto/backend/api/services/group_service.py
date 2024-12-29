@@ -10,6 +10,7 @@ from api.models.group_member_model import GroupMember  # グループメンバ�
 from api.models.group_model import Group  # Groupモデルをインポート（グループ作成に必要）
 from api.models.participation_model import Participation  # Participationモデルをインポート
 from api.models.user_profile_model import UserProfile  # Userモデルをインポート
+from django.contrib.auth.models import User
 from django.conf import settings  # settings.py のスコア設定をインポート
 
 
@@ -239,4 +240,52 @@ def assign_users_to_groups():
 
         print(f"グループ {i + 1} の幹事は {leader.full_name} です")
 
+        # 希望日（desired_dates）をmeeting_dateとして保存
+        participation = group[0].participations.first()  # 最初のparticipationを取得
+        meeting_date = participation.desired_dates if group else None  
+        # グループにメンバーがいれば、最初のメンバーの希望日を使用
+
+        # データベースに保存する処理（save_groups_and_members）を呼び出し
+        save_groups_and_members(groups, group_leaders, meeting_date)
+
     return groups, group_leaders
+
+def save_groups_and_members(groups, group_leaders, meeting_date):
+    """
+    グループ分け結果をデータベースに保存し、各グループのメンバー情報も保存する。
+    """
+    # グループを保存
+    for group_index, group_members in enumerate(groups):
+        group_name = f"Group {group_index + 1}"
+        
+        # 幹事（リーダー）を特定
+        leader_name = group_leaders.get(group_name)
+
+        # リーダーのユーザーインスタンスを取得
+        leader = User.objects.get(username=leader_name)
+
+        # # リーダーの名前からUserインスタンスを取得
+        # leader_profile = UserProfile.objects.filter(full_name=leader_name).first() if leader_name != "No leader" else None
+
+        # # leader_profile が取得できれば、リーダーの UserProfile を取得
+        # leader = leader_profile if leader_profile else None
+
+        # if leader is None and leader_name != "No leader":
+        #     print(f"リーダー '{leader_name}' が見つかりませんでした。")
+
+        # グループを作成
+        group = Group.objects.create(
+            name=group_name,
+            meeting_date=meeting_date,
+            leader=leader
+        )
+
+        # グループにメンバーを追加
+        for member in group_members:
+            group_member = GroupMember.objects.create(
+                group=group,
+                user=member
+            )
+            group_member.save()
+
+        group.save()
