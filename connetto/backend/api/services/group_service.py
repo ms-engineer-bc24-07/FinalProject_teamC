@@ -204,7 +204,7 @@ def select_random_leader(group, excluded_leaders=[]):
     除外リストに全員が含まれる場合、除外ルールをリセットして選出する。
     """
     # 除外リストに含まれていないユーザーを幹事候補とする
-    potential_leaders = [(user for user in group if user not in excluded_leaders)]
+    potential_leaders = [user for user in group if user not in excluded_leaders]
 
     # 幹事候補がいない場合は除外リストをリセットする
     if not potential_leaders:
@@ -231,12 +231,12 @@ def assign_users_to_groups():
         leader = select_random_leader(group, excluded_leaders)
 
         # 幹事を選出し、結果を格納
-        group_leaders[f"Group {i + 1}"] = leader.name if leader else "No leader"
+        group_leaders[f"Group {i + 1}"] = leader.full_name if leader else "No leader"
 
         # 選出されたリーダーを除外リストに追加
         if leader:
             excluded_leaders.append(leader)  # 幹事選出後、履歴に追加
 
-        print(f"グループ {i + 1} の幹事は {leader.name} です")
+        print(f"グループ {i + 1} の幹事は {leader.full_name} です")
 
     return groups, group_leaders
