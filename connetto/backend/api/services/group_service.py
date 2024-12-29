@@ -144,8 +144,9 @@ def group_users_by_date_and_preference():
                         score += settings.SCORING_WEIGHTS["年代制限"]["希望なし"]
 
                 # 入社年比較 
-                if participation1.join_year == participation2.join_year:
-                    score += settings.SCORING_WEIGHTS["入社年"]["完全一致"]
+                if participation1.joining_year_restriction == participation2.joining_year_restriction:
+                    if user1.join_year == user2.join_year:  # Profileモデルのjoin_yearを利用
+                        score += settings.SCORING_WEIGHTS["入社年"]["完全一致"]
                 else:
                     score += settings.SCORING_WEIGHTS["入社年"]["希望なし"]
 
@@ -159,10 +160,12 @@ def group_users_by_date_and_preference():
                         score += settings.SCORING_WEIGHTS["部署希望"]["希望なし"]
 
                 # お店の雰囲気比較
-                if participation1.shop_atmosphere_restriction == participation2.shop_atmosphere_restriction:
-                    if user1.shop_preference == user2.shop_preference:
+                if participation1.atmosphere_preference == participation2.atmosphere_preference:
+                    if participation1.atmosphere_preference != "no_restriction":
+                        # 雰囲気の好みが一致する場合にスコアを加算
                         score += settings.SCORING_WEIGHTS["お店の雰囲気"]["一致"]
                     else:
+                        # 希望なしの場合のスコアを加算
                         score += settings.SCORING_WEIGHTS["お店の雰囲気"]["希望なし"]
 
                 # ペアごとのスコアを記録
