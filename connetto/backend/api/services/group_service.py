@@ -161,9 +161,11 @@ def group_users_by_date_and_preference():
 
                 # お店の雰囲気比較
                 if participation1.atmosphere_preference == participation2.atmosphere_preference:
-                    if participation1.atmosphere_preference != "no_restriction":
+                    if participation1.atmosphere_preference == participation2.atmosphere_preference:
                         # 雰囲気の好みが一致する場合にスコアを加算
-                        score += settings.SCORING_WEIGHTS["お店の雰囲気"]["一致"]
+                        score += settings.SCORING_WEIGHTS["お店の雰囲気"]["落ち着いたお店"]
+                    elif participation1.atmosphere_preference == participation2.atmosphere_preference:
+                        score += settings.SCORING_WEIGHTS["お店の雰囲気"]["わいわいできるお店"]
                     else:
                         # 希望なしの場合のスコアを加算
                         score += settings.SCORING_WEIGHTS["お店の雰囲気"]["希望なし"]
@@ -187,11 +189,11 @@ def group_users_by_date_and_preference():
         # スコアリング結果を表示
         print("\n==== ペアごとのスコアリング結果 ====")
         for (user1, user2), score in pair_scores:
-            print(f"ペア: {user1.name} と {user2.name}, スコア: {score}")
+            print(f"ペア: {user1.full_name} と {user2.full_name}, スコア: {score}")
 
         print("\n==== 選ばれたグループ ====")
         for user in selected_users:
-            print(f"  {user.name}")
+            print(f"  {user.full_name}")
 
     return final_groups
 

@@ -46,7 +46,7 @@ class ParticipationFactory(factory.django.DjangoModelFactory):
         ]
     )
 
-    # 雰囲気の好み
+     # 雰囲気の好み
     atmosphere_preference = factory.Iterator(
         [
             ("quiet", "落ち着いたお店"),
@@ -60,6 +60,6 @@ class ParticipationFactory(factory.django.DjangoModelFactory):
         lambda o: [
             f"{str(fake.date_between(start_date=datetime.date(2024, 12, 1), end_date=datetime.date(2024, 12, 3)))} "
             f"{random.choice(['18:30', '19:00'])}"
-            for _ in range(random.randint(1, 3))  # 1～3件の日時を生成
+            for _ in range(random.randint(1,3))  # 1～3件の日時を生成
         ]
     )
