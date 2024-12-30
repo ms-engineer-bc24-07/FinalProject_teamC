@@ -4,7 +4,7 @@
 import json #希望日時で絞り込み
 import random
 from collections import defaultdict #希望日時で絞り込み
-from datetime import datetime, timedelta  # 日付操作のため
+from datetime import datetime, timedelta, date  # 日付操作のため
 
 from api.models.group_member_model import GroupMember  # グループメンバーモデル
 from api.models.group_model import Group  # Groupモデルをインポート（グループ作成に必要）
@@ -16,20 +16,24 @@ from django.conf import settings  # settings.py のスコア設定をインポ�
 
 def group_users_by_date_and_preference():
     """
-    ユーザーの希望日字を基にグループ分けする関数。
+    ユーザーの希望日時を基にグループ分けする関数。
+    時間誤差1時間以内なら同じグループにする。
+    複数の希望日時がある場合は第1希望を優先、第2希望を使用する。
     希望日から3日前を過ぎた場合にグループ分けを開始する。
     """
-    # 現在の日付を取得
-    today = datetime.today()
-    
-    # 希望日から3日前を計算
-    three_days_before = today - timedelta(days=3)
+  
+    today = datetime.today()  # 現在の日付を取得  
+    three_days_before = today - timedelta(days=3) # 希望日から3日前を計算
 
     # 現在日付が3日前を過ぎているかを確認
     if today >= three_days_before:
         print("グループ分けを開始します")
     else:
         print("まだグループ分けを開始できません")
+
+    # 希望日時ごとにユーザーをグループ化
+    grouped_by_date = defaultdict(list) 
+    assigned_users = set()  # 割り当て済みのユーザーを追跡
 
     # 希望条件を取得
     participations = Participation.objects.all() # Participationモデルから全データを取得
@@ -39,57 +43,60 @@ def group_users_by_date_and_preference():
         desired_dates = participation.desired_dates
         print(f"ユーザー: {participation.user.full_name}, 希望日: {desired_dates}")
 
-    # 希望日ごとにユーザーをグループ化
-    grouped_by_date = defaultdict(list) # 希望日ごとにユーザーを格納するための辞書
-
-    # 希望日時ごとにグループ化
-    for participation in participations:
-        desired_dates = participation.desired_dates  # 希望日時を取得
-        
-        # 希望日が設定されていれば、その日付を使う
+        # 希望日がリストの場合
         if isinstance(desired_dates, list) and desired_dates:
-            # 希望日を一意にする
-            unique_dates = list(set(desired_dates))  # 重複を排除
-
-            # 各希望日時を処理
-            for date_str in unique_dates:
-                # 余計な空白を削除
-                date_str = date_str.strip()  # 空白の削除
-
-                # もし時間部分が含まれている場合、時間部分を切り取る
-                if " " in date_str:
-                    date_str = date_str.split(" ")[0]  # 時間を取り除く
-
-                # 時間部分を含むフォーマットに対応
+            # 最初の希望日時を基準に
+            for i, date_str in enumerate(desired_dates):
+                # 日付文字列をパース
                 try:
-                    # 日付と時間を含むフォーマット
                     date = datetime.strptime(date_str, "%Y-%m-%d %H:%M") 
                 except ValueError:
-                    try:
-                        # 時間部分がない場合
-                        date = datetime.strptime(date_str, "%Y-%m-%d") 
-                    except ValueError:
-                        print(f"無効な日時形式: {date_str}")
-                        continue  # 次の希望日時へ進む
-                
-                # 希望日が3日前を過ぎていればグループ分け
-                if date <= three_days_before:
-                    grouped_by_date[date.date()].append(participation)
+                    continue  # 無効な日時形式はスキップ
+
+                # ユーザーがすでに割り当てられている場合はスキップ
+                if participation.user.full_name in assigned_users:
+                    print(f"{participation.user.full_name} はすでにグループに割り当て済みです。")
+                    break
+
+                # もし希望日時に合う他のユーザーがいれば、同じグループに
+                grouped = False
+                for group_date, group in grouped_by_date.items():
+                    # 既存グループの日時と1時間以内であれば同じグループにする
+                    if abs((date - group_date).total_seconds()) <= 3600:  # 1時間以内
+                        if participation not in group:  # 重複確認
+                            group.append(participation)
+                            assigned_users.add(participation.user.full_name)  # 割り当て済みに追加
+                        grouped = True
+                        break  # グループ分けができたら次の日時へ
+
+                # 希望日時に合うグループがなければ新しいグループを作成
+                if not grouped:
+                    grouped_by_date[date].append(participation)
+                    assigned_users.add(participation.user.full_name)  # 割り当て済みに追加
+
+                # 第1希望が処理された場合は終了
+                if i == 0 and grouped:
+                    break
 
         else:
-            # 単一の希望日がある場合
+            # 単一の希望日時の場合
             date_str = desired_dates.strip()
-            if " " in date_str:
-                date_str = date_str.split(" ")[0]  # 時間を取り除く
-
             try:
-                date = datetime.strptime(date_str, "%Y-%m-%d")
+                date = datetime.strptime(date_str, "%Y-%m-%d %H:%M")  # 時間あり
             except ValueError:
-                print(f"無効な日時形式: {date_str}")
-                continue  # 次の参加者へ進む
+                continue
 
-            if date <= three_days_before:
-                grouped_by_date[date.date()].append(participation)
+            # グループ分け
+            grouped = False
+            for group_date, group in grouped_by_date.items():
+                if abs((date - group_date).total_seconds()) <= 3600:  # 1時間以内
+                    if participation not in group:  # 重複確認
+                        group.append(participation)
+                    grouped = True
+                    break
+
+            if not grouped:
+                grouped_by_date[date].append(participation)
 
     # グループ分けの途中経過を表示
     print("\n==== 希望日ごとのグループ分け ====")
@@ -108,7 +115,7 @@ def group_users_by_date_and_preference():
             print(f"    ユーザー: {', '.join(user_names)}")
 
     # 最終的に希望日ごとにグループ化されたデータを返す
-    #return grouped_by_date
+    #return grouped_by_date,, assigned_users
 
     final_groups = [] # 最終的なグループを格納するリスト
 
@@ -254,6 +261,25 @@ def save_groups_and_members(groups, group_leaders, meeting_date):
     """
     グループ分け結果をデータベースに保存し、各グループのメンバー情報も保存する。
     """
+    # meeting_dateが文字列の場合、datetime.date型に変換
+    if isinstance(meeting_date, str):
+        try:
+            meeting_date = datetime.strptime(meeting_date, '%Y-%m-%d').date()
+        except ValueError:
+            print(f"無効な日付形式です: {meeting_date}")
+            return
+    elif isinstance(meeting_date, datetime):
+        # datetime 型の場合は、日付部分を取得
+        meeting_date = meeting_date.date()
+    elif meeting_date is None:
+        print("meeting_date が None です。")
+        return
+    
+    # meeting_date が datetime.date 型か確認
+    if not isinstance(meeting_date, date):
+        print(f"meeting_date は日付型でないため、保存できません: {meeting_date}")
+        return
+
     # グループを保存
     for group_index, group_members in enumerate(groups):
         group_name = f"Group {group_index + 1}"
@@ -261,17 +287,17 @@ def save_groups_and_members(groups, group_leaders, meeting_date):
         # 幹事（リーダー）を特定
         leader_name = group_leaders.get(group_name)
 
-        # リーダーのユーザーインスタンスを取得
-        leader = User.objects.get(username=leader_name)
+        # リーダーの名前からUserインスタンスを取得
+        leader_profile = UserProfile.objects.filter(full_name=leader_name).first() 
 
-        # # リーダーの名前からUserインスタンスを取得
-        # leader_profile = UserProfile.objects.filter(full_name=leader_name).first() if leader_name != "No leader" else None
-
-        # # leader_profile が取得できれば、リーダーの UserProfile を取得
-        # leader = leader_profile if leader_profile else None
-
-        # if leader is None and leader_name != "No leader":
-        #     print(f"リーダー '{leader_name}' が見つかりませんでした。")
+        # リーダーのUserProfileが存在すれば、リーダーのユーザーを取得
+        leader = None
+        if leader_profile:
+            # UserProfileからUserを取得（UserProfileがUserの情報を持っていない場合）
+            try:
+                leader = User.objects.get(username=leader_profile.username)  # UserProfileのusernameを使用
+            except User.DoesNotExist:
+                print(f"リーダー '{leader_name}' に対応するUserが見つかりませんでした。")
 
         # グループを作成
         group = Group.objects.create(
@@ -282,10 +308,7 @@ def save_groups_and_members(groups, group_leaders, meeting_date):
 
         # グループにメンバーを追加
         for member in group_members:
-            group_member = GroupMember.objects.create(
+            GroupMember.objects.create(
                 group=group,
                 user=member
-            )
-            group_member.save()
-
-        group.save()
+        )

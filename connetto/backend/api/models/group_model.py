@@ -4,7 +4,6 @@
 from django.contrib.auth.models import User  # Djangoのデフォルトユーザーモデルを使用
 from django.db import models
 
-
 class Group(models.Model):
     name = models.CharField(max_length=100, unique=True)  # グループ名（ユニーク）
     meeting_date = models.DateField()  # 飲み会の日付
