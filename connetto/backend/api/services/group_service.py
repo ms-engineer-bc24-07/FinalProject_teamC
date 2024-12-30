@@ -5,6 +5,7 @@ import json #希望日時で絞り込み
 import random
 from collections import defaultdict #希望日時で絞り込み
 from datetime import datetime, timedelta, date  # 日付操作のため
+from django.db import models
 
 from api.models.group_member_model import GroupMember  # グループメンバーモデル
 from api.models.group_model import Group  # Groupモデルをインポート（グループ作成に必要）
@@ -243,31 +244,31 @@ def assign_users_to_groups():
     leaders = {}
     excluded_leaders = []  # 以前選出された幹事を除外
 
-    for i, group in enumerate(groups):
+    for group_index, group in enumerate(groups, start=1):
         users = group['users']
 
         # 幹事をランダムに選出
         selected_leader = select_random_leader(users, excluded_leaders)
 
+        # ユニークなグループ名を生成
+        base_name = generate_unique_group_name("Group")  
+
+        # グループの名前を更新
+        group['name'] = base_name  # ここでユニークなグループ名を設定
+
         # 幹事を選出し、結果を格納
         if isinstance(selected_leader, str):
-            leaders[f"Group {i + 1}"] = selected_leader  # 文字列の場合、そのまま代入
+            leaders[base_name] = selected_leader  # 文字列の場合、そのまま代入
             leader_name = selected_leader
         else:
-            leaders[f"Group {i + 1}"] = selected_leader.full_name if selected_leader else "No leader"
+            leaders[base_name] = selected_leader.full_name if selected_leader else "No leader"
             leader_name = selected_leader.full_name if selected_leader else "No leader"
 
-        print(f"グループ {i + 1} の幹事は {leader_name} です")
+        print(f"グループ {base_name} の幹事は {leader_name} です")
 
         # 選出されたリーダーを除外リストに追加
         if selected_leader:
             excluded_leaders.append(selected_leader)  # 幹事選出後、履歴に追加
-        
-        # ユニークなグループ名を生成
-        group_name = generate_unique_group_name(f"Group {i + 1}")  # ユニークな名前を取得
-
-        # グループの名前を更新
-        group['name'] = group_name  # ここでユニークなグループ名を設定
 
         # グループに割り当てられた日時を決定
         # group_users_by_date_and_preference() で既に希望日時が決まっているので、そのまま使用
@@ -331,14 +332,18 @@ def save_groups_and_members(groups, leaders, meeting_date):
 def generate_unique_group_name(base_name):
     """
     与えられたグループ名がすでに存在する場合、ユニークな名前を生成する。
-    例: 'Group 1' がすでに存在するなら 'Group 1 (1)' や 'Group 1 (2)' などを生成。
     """
-    # グループ名がすでに存在するかチェック
-    group_name = base_name
-    index = 1
-    while Group.objects.filter(name=base_name).exists():
-        group_name = f"{base_name} ({index})"
-        index += 1
+    # 最大のグループ番号を取得
+    max_group_name = Group.objects.aggregate(models.Max('name'))['name__max']
+    max_group_number = (
+        int(max_group_name.split()[-1]) if max_group_name and max_group_name.split()[-1].isdigit() else 0
+    )
+    group_number = max_group_number + 1
+    unique_name = f"{base_name} {group_number}"
 
-    return group_name 
+    while Group.objects.filter(name=unique_name).exists():
+        group_number += 1
+        unique_name = f"{base_name} {group_number}"
+        
+    return f"{base_name} {group_number}" 
 
