@@ -16,10 +16,11 @@ from django.conf import settings  # settings.py のスコア設定をインポ�
 
 def group_users_by_date_and_preference():
     """
-    ユーザーの希望日時を基にグループ分けする関数。
+    ユーザーの希望日時を基にグループ分け、meeting_date を設定する関数。
+    希望日から3日前を過ぎた場合にグループ分けを開始する。
     時間誤差1時間以内なら同じグループにする。
     複数の希望日時がある場合は第1希望を優先、第2希望を使用する。
-    希望日から3日前を過ぎた場合にグループ分けを開始する。
+    
     """
   
     today = datetime.today()  # 現在の日付を取得  
@@ -115,12 +116,16 @@ def group_users_by_date_and_preference():
             print(f"    ユーザー: {', '.join(user_names)}")
 
     # 最終的に希望日ごとにグループ化されたデータを返す
-    #return grouped_by_date,, assigned_users
+    #return grouped_by_date, assigned_users
 
     final_groups = [] # 最終的なグループを格納するリスト
 
     # 最終的に希望日ごとにグループ化されたデータを返す前にグループ分けを行う
     for date, participations in grouped_by_date.items():
+        # グループ化された日時をmeeting_dateとする
+        meeting_date = date
+
+        # 希望条件に基づくスコアリングを実施
         pair_scores = []
 
         # 2人ずつ比較してスコアを計算
@@ -192,7 +197,10 @@ def group_users_by_date_and_preference():
                 break
 
         # ユーザーリストをグループとしてまとめる
-        final_groups.append(list(selected_users))
+        final_groups.append({
+            "meeting_date": meeting_date,
+            "users": list(selected_users)
+    })
 
         # スコアリング結果を表示
         print("\n==== ペアごとのスコアリング結果 ====")
@@ -232,83 +240,105 @@ def assign_users_to_groups():
     groups = group_users_by_date_and_preference()
 
     # 幹事選出
-    group_leaders = {}
+    leaders = {}
     excluded_leaders = []  # 以前選出された幹事を除外
 
     for i, group in enumerate(groups):
-        leader = select_random_leader(group, excluded_leaders)
+        users = group['users']
+
+        # 幹事をランダムに選出
+        selected_leader = select_random_leader(users, excluded_leaders)
 
         # 幹事を選出し、結果を格納
-        group_leaders[f"Group {i + 1}"] = leader.full_name if leader else "No leader"
+        if isinstance(selected_leader, str):
+            leaders[f"Group {i + 1}"] = selected_leader  # 文字列の場合、そのまま代入
+            leader_name = selected_leader
+        else:
+            leaders[f"Group {i + 1}"] = selected_leader.full_name if selected_leader else "No leader"
+            leader_name = selected_leader.full_name if selected_leader else "No leader"
+
+        print(f"グループ {i + 1} の幹事は {leader_name} です")
 
         # 選出されたリーダーを除外リストに追加
-        if leader:
-            excluded_leaders.append(leader)  # 幹事選出後、履歴に追加
+        if selected_leader:
+            excluded_leaders.append(selected_leader)  # 幹事選出後、履歴に追加
+        
+        # ユニークなグループ名を生成
+        group_name = generate_unique_group_name(f"Group {i + 1}")  # ユニークな名前を取得
 
-        print(f"グループ {i + 1} の幹事は {leader.full_name} です")
+        # グループの名前を更新
+        group['name'] = group_name  # ここでユニークなグループ名を設定
 
-        # 希望日（desired_dates）をmeeting_dateとして保存
-        participation = group[0].participations.first()  # 最初のparticipationを取得
-        meeting_date = participation.desired_dates if group else None  
-        # グループにメンバーがいれば、最初のメンバーの希望日を使用
+        # グループに割り当てられた日時を決定
+        # group_users_by_date_and_preference() で既に希望日時が決まっているので、そのまま使用
+        meeting_date = group['meeting_date'] 
 
         # データベースに保存する処理（save_groups_and_members）を呼び出し
-        save_groups_and_members(groups, group_leaders, meeting_date)
+        save_groups_and_members(groups, leaders, meeting_date)
 
-    return groups, group_leaders
+    return groups, leaders
 
-def save_groups_and_members(groups, group_leaders, meeting_date):
+def save_groups_and_members(groups, leaders, meeting_date):
     """
     グループ分け結果をデータベースに保存し、各グループのメンバー情報も保存する。
     """
-    # meeting_dateが文字列の場合、datetime.date型に変換
-    if isinstance(meeting_date, str):
-        try:
-            meeting_date = datetime.strptime(meeting_date, '%Y-%m-%d').date()
-        except ValueError:
-            print(f"無効な日付形式です: {meeting_date}")
-            return
-    elif isinstance(meeting_date, datetime):
-        # datetime 型の場合は、日付部分を取得
-        meeting_date = meeting_date.date()
-    elif meeting_date is None:
-        print("meeting_date が None です。")
-        return
-    
-    # meeting_date が datetime.date 型か確認
-    if not isinstance(meeting_date, date):
-        print(f"meeting_date は日付型でないため、保存できません: {meeting_date}")
-        return
 
     # グループを保存
     for group_index, group_members in enumerate(groups):
         group_name = f"Group {group_index + 1}"
         
         # 幹事（リーダー）を特定
-        leader_name = group_leaders.get(group_name)
+        leader_name = leaders.get(group_name)
 
         # リーダーの名前からUserインスタンスを取得
         leader_profile = UserProfile.objects.filter(full_name=leader_name).first() 
 
         # リーダーのUserProfileが存在すれば、リーダーのユーザーを取得
-        leader = None
         if leader_profile:
-            # UserProfileからUserを取得（UserProfileがUserの情報を持っていない場合）
             try:
-                leader = User.objects.get(username=leader_profile.username)  # UserProfileのusernameを使用
-            except User.DoesNotExist:
-                print(f"リーダー '{leader_name}' に対応するUserが見つかりませんでした。")
+              leader = leader_profile.user  # UserProfile から関連する User を取得
+            except AttributeError:
+                print(f"リーダー '{leader_name}' に関連する User が見つかりませんでした。")
+                leader = None
+        else:
+            print(f"リーダー '{leader_name}' に対応するUserProfileが見つかりませんでした。")
+            leader = None
 
-        # グループを作成
+        # meeting_date がリストでないことを確認
+        if isinstance(meeting_date, list):
+            print(f"meeting_date は日付型でないため、保存できません: {meeting_date}")
+            continue        
+
+        # グループを作成し、「確定した日時」を保存
         group = Group.objects.create(
             name=group_name,
             meeting_date=meeting_date,
-            leader=leader
+            leader=leader # leader_profileをそのまま使用
         )
 
         # グループにメンバーを追加
         for member in group_members:
-            GroupMember.objects.create(
-                group=group,
-                user=member
-        )
+            # member は UserProfile 型なので、UserProfile から User を取得
+            try:
+                user = member.user  # UserProfile から関連する User を取得
+                GroupMember.objects.create(
+                    group=group,
+                    user=user
+                )
+            except User.DoesNotExist:
+                print(f"メンバー '{member.username}' に対応するUserが見つかりませんでした。")
+
+def generate_unique_group_name(base_name):
+    """
+    与えられたグループ名がすでに存在する場合、ユニークな名前を生成する。
+    例: 'Group 1' がすでに存在するなら 'Group 1 (1)' や 'Group 1 (2)' などを生成。
+    """
+    # グループ名がすでに存在するかチェック
+    group_name = base_name
+    index = 1
+    while Group.objects.filter(name=base_name).exists():
+        group_name = f"{base_name} ({index})"
+        index += 1
+
+    return group_name 
+
