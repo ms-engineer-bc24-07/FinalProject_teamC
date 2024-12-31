@@ -299,14 +299,14 @@ def assign_users_to_groups():
 
         # グループに割り当てられた日時を決定
         # group_users_by_date_and_preference() で既に希望日時が決まっているので、そのまま使用
-        meeting_date= group['meeting_date'] 
+        #meeting_date= group['meeting_date'] 
 
         # データベースに保存する処理（save_groups_and_members）を呼び出し
-        save_groups_and_members(groups, leaders, meeting_date)
+        save_groups_and_members(groups, leaders )
 
     return groups, leaders
 
-def save_groups_and_members(groups, leaders, meeting_date):
+def save_groups_and_members(groups, leaders):
     """
     グループ分け結果をデータベースに保存し、各グループのメンバー情報も保存する。
     """
@@ -314,6 +314,7 @@ def save_groups_and_members(groups, leaders, meeting_date):
     # グループを保存
     for group_index, group in enumerate(groups):
         group_name =  f"Group {group_index + 1}"
+        meeting_date = group.get('meeting_date')
 
         # グループ名の重複チェック
         if Group.objects.filter(name=group_name).exists():
@@ -342,14 +343,13 @@ def save_groups_and_members(groups, leaders, meeting_date):
             print(f"幹事 '{leader_name}' は既に他のグループに割り当てられています。")
             continue  # 重複があれば次のグループに進む
 
-        meeting_date= group['meeting_date'] 
         # meeting_date がリストでないことを確認
         if not isinstance(meeting_date, str):
                 print(f"meeting_date は日付型でないため、保存できません: {meeting_date}")
                 continue        
 
         # グループを作成し、「確定した日時」を保存
-        group = Group.objects.create(
+        group_obj = Group.objects.create(
             name=group_name,
             meeting_date=meeting_date,
             leader=leader # leader_profileをそのまま使用
@@ -368,7 +368,7 @@ def save_groups_and_members(groups, leaders, meeting_date):
 
                 # グループメンバーを作成
                 GroupMember.objects.create(
-                    group=group,
+                    group=group_obj,
                     user=user
                 )
             except User.DoesNotExist:
