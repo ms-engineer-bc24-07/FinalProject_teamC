@@ -214,8 +214,8 @@ def group_users_by_date_and_preference():
 
     return final_groups
 
-
 def select_random_leader(group, excluded_leaders=[]):
+
     """
     グループ内からランダムに幹事を選出。
     除外リストに全員が含まれる場合、除外ルールをリセットして選出する。
@@ -232,6 +232,37 @@ def select_random_leader(group, excluded_leaders=[]):
     # 幹事をランダムに選出
     return random.choice(potential_leaders)
 
+def generate_unique_group_name(base_name):
+    """
+    与えられたグループ名がすでに存在する場合、ユニークな名前を生成する。
+    """
+    import re
+    from django.db.models import IntegerField, Max
+
+    # グループ名の末尾に付けられた番号を正規表現で抽出する
+    number_pattern = re.compile(r'(\d+)$')
+    
+    # すべてのグループ名を取得
+    group_names = Group.objects.values_list('name', flat=True)
+
+    # 最大番号を抽出
+    max_group_number = 0
+    for name in group_names:
+        match = number_pattern.search(name)
+        if match:
+            number = int(match.group(1))
+            max_group_number = max(max_group_number, number)
+    
+    # 新しい番号を計算
+    group_number = max_group_number + 1
+    unique_name = f"{base_name} {group_number}"
+
+    # ユニーク性を確認しながら名前を生成
+    while Group.objects.filter(name=unique_name).exists():
+        group_number += 1
+        unique_name = f"{base_name} {group_number}"
+
+    return unique_name 
 
 def assign_users_to_groups():
     """
@@ -251,20 +282,16 @@ def assign_users_to_groups():
         selected_leader = select_random_leader(users, excluded_leaders)
 
         # ユニークなグループ名を生成
-        base_name = generate_unique_group_name("Group")  
-
-        # グループの名前を更新
+        base_name = generate_unique_group_name(f"Group {group_index}")  
         group['name'] = base_name  # ここでユニークなグループ名を設定
 
         # 幹事を選出し、結果を格納
         if isinstance(selected_leader, str):
-            leaders[base_name] = selected_leader  # 文字列の場合、そのまま代入
-            leader_name = selected_leader
+            leaders[base_name] = selected_leader
         else:
             leaders[base_name] = selected_leader.full_name if selected_leader else "No leader"
-            leader_name = selected_leader.full_name if selected_leader else "No leader"
 
-        print(f"グループ {base_name} の幹事は {leader_name} です")
+        print(f"グループ {base_name} の幹事は {selected_leader.full_name} です")
 
         # 選出されたリーダーを除外リストに追加
         if selected_leader:
@@ -272,7 +299,7 @@ def assign_users_to_groups():
 
         # グループに割り当てられた日時を決定
         # group_users_by_date_and_preference() で既に希望日時が決まっているので、そのまま使用
-        meeting_date = group['meeting_date'] 
+        meeting_date= group['meeting_date'] 
 
         # データベースに保存する処理（save_groups_and_members）を呼び出し
         save_groups_and_members(groups, leaders, meeting_date)
@@ -285,8 +312,13 @@ def save_groups_and_members(groups, leaders, meeting_date):
     """
 
     # グループを保存
-    for group_index, group_members in enumerate(groups):
-        group_name = f"Group {group_index + 1}"
+    for group_index, group in enumerate(groups):
+        group_name =  f"Group {group_index + 1}"
+
+        # グループ名の重複チェック
+        if Group.objects.filter(name=group_name).exists():
+            print(f"グループ名 '{group_name}' は既に存在します。")
+            continue  # 重複があれば次のグループに進む
         
         # 幹事（リーダー）を特定
         leader_name = leaders.get(group_name)
@@ -297,7 +329,7 @@ def save_groups_and_members(groups, leaders, meeting_date):
         # リーダーのUserProfileが存在すれば、リーダーのユーザーを取得
         if leader_profile:
             try:
-              leader = leader_profile.user  # UserProfile から関連する User を取得
+                leader = leader_profile.user  # UserProfile から関連する User を取得
             except AttributeError:
                 print(f"リーダー '{leader_name}' に関連する User が見つかりませんでした。")
                 leader = None
@@ -305,10 +337,16 @@ def save_groups_and_members(groups, leaders, meeting_date):
             print(f"リーダー '{leader_name}' に対応するUserProfileが見つかりませんでした。")
             leader = None
 
+        # 幹事の重複チェック
+        if leader and Group.objects.filter(leader=leader).exists():
+            print(f"幹事 '{leader_name}' は既に他のグループに割り当てられています。")
+            continue  # 重複があれば次のグループに進む
+
+        meeting_date= group['meeting_date'] 
         # meeting_date がリストでないことを確認
-        if isinstance(meeting_date, list):
-            print(f"meeting_date は日付型でないため、保存できません: {meeting_date}")
-            continue        
+        if not isinstance(meeting_date, str):
+                print(f"meeting_date は日付型でないため、保存できません: {meeting_date}")
+                continue        
 
         # グループを作成し、「確定した日時」を保存
         group = Group.objects.create(
@@ -318,10 +356,17 @@ def save_groups_and_members(groups, leaders, meeting_date):
         )
 
         # グループにメンバーを追加
-        for member in group_members:
+        for member in group['users']:
             # member は UserProfile 型なので、UserProfile から User を取得
             try:
                 user = member.user  # UserProfile から関連する User を取得
+
+                # メンバーの重複チェック
+                if GroupMember.objects.filter(group=group, user=user).exists():
+                    print(f"メンバー '{user.username}' はグループ '{group_name}' に既に追加されています。")
+                    continue  # 重複があれば次のメンバーに進む
+
+                # グループメンバーを作成
                 GroupMember.objects.create(
                     group=group,
                     user=user
@@ -329,21 +374,4 @@ def save_groups_and_members(groups, leaders, meeting_date):
             except User.DoesNotExist:
                 print(f"メンバー '{member.username}' に対応するUserが見つかりませんでした。")
 
-def generate_unique_group_name(base_name):
-    """
-    与えられたグループ名がすでに存在する場合、ユニークな名前を生成する。
-    """
-    # 最大のグループ番号を取得
-    max_group_name = Group.objects.aggregate(models.Max('name'))['name__max']
-    max_group_number = (
-        int(max_group_name.split()[-1]) if max_group_name and max_group_name.split()[-1].isdigit() else 0
-    )
-    group_number = max_group_number + 1
-    unique_name = f"{base_name} {group_number}"
-
-    while Group.objects.filter(name=unique_name).exists():
-        group_number += 1
-        unique_name = f"{base_name} {group_number}"
-        
-    return f"{base_name} {group_number}" 
 
