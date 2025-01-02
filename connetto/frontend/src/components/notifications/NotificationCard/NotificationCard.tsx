@@ -8,6 +8,8 @@ type NotificationCardProps = {
     body: string;
     timestamp: string;
     isRead: boolean;
+    type: string;
+    data?: Record<string, any>;
     onClick: () => void;
 };
 
@@ -17,8 +19,49 @@ export default function NotificationCard({
     body,
     timestamp,
     isRead,
+    type,
+    data,
     onClick,
 }: NotificationCardProps) {
+    const renderDetails = () => {
+         // 開催決定通知の場合
+        if (type === "EVENT_DECISION" && data) {
+            return (
+                <Box className={styles.detailBox}>
+                    <Typography variant="body2" className={styles.detailText}>
+                        開催日時: {data.meeting_date}
+                    </Typography>
+                    <Typography variant="body2" className={styles.detailText}>
+                        場所: {data.meeting_location}
+                    </Typography>
+                    <Typography variant="body2" className={styles.detailText}>
+                        参加人数: {data.participant_count}人
+                    </Typography>
+                </Box>
+            );
+        }
+         // 幹事決定通知の場合
+        if (type === "MANAGER_DECISION" && data) {
+            return (
+                <Box className={styles.detailBox}>
+                    <Typography variant="body2" className={styles.detailText}>
+                        候補のお店:
+                    </Typography>
+                    <ul className={styles.restaurantList}>
+                        {data.restaurants?.map((restaurant: any, index: number) => (
+                            <li key={index} className={styles.restaurantItem}>
+                                <a href={restaurant.url} target="_blank" rel="noopener noreferrer">
+                                    {restaurant.name}
+                                </a>
+                            </li>
+                        ))}
+                    </ul>
+                </Box>
+            );
+        }
+        return null;
+    };
+
     return (
         <Card
             onClick={onClick}
@@ -45,6 +88,7 @@ export default function NotificationCard({
                 <Typography variant="body2" className={styles.cardBody}>
                     {body.length > 50 ? `${body.substring(0, 21)}...` : body}
                 </Typography>
+                {renderDetails()}
             </CardContent>
         </Card>
     );

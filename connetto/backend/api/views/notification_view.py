@@ -38,12 +38,12 @@ class FirebaseAuthentication(BaseAuthentication):
 
 
 class NotificationView(APIView):
-    authentication_classes = [FirebaseAuthentication]  # Firebase認証
-    permission_classes = [IsAuthenticated]  # 認証必須
+    authentication_classes = [FirebaseAuthentication]  
+    permission_classes = [IsAuthenticated]  
 
     def get(self, request):
-        user = request.user  # 認証されたユーザーを取得
-        notifications = Notification.objects.filter(user=user).order_by('-created_at')  # ユーザーの通知を取得
+        user = request.user  
+        notifications = Notification.objects.filter(user=user).order_by('-created_at') 
         serializer = NotificationSerializer(notifications, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
