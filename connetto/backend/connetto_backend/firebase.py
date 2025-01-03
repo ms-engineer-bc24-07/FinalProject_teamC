@@ -2,10 +2,13 @@ import os
 from firebase_admin import credentials, initialize_app, auth
 from dotenv import load_dotenv
 
+# .env ファイルを読み込む
 load_dotenv()
-# 環境変数からパスを取得
-firebase_credentials_path = os.getenv("FIREBASE_CREDENTIALS_PATH")
 
+# 環境変数からファイルパスを取得
+firebase_credentials_path = os.getenv("FIREBASE_CREDENTIALS_PATH", "./firebase_credentials.json")
+
+# 環境変数が設定されていない場合はエラー
 if not firebase_credentials_path:
     raise ValueError("環境変数 'FIREBASE_CREDENTIALS_PATH' が設定されていません。")
 

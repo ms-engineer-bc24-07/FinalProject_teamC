@@ -43,21 +43,6 @@ class VenueService:
             raise ValueError(f"座標取得中にエラーが発生しました: {e}")
 
     @staticmethod
-    def get_midpoint_for_group(group_stations):
-        """グループの最寄駅情報を元に座標を取得し、中間地点を計算"""
-        coordinates = []
-
-        # 各最寄駅の座標を取得
-        for station in group_stations:
-            coordinates.append(VenueService.get_coordinates(station))
-
-        # 中間地点を計算
-        lat = sum(coord["lat"] for coord in coordinates) / len(coordinates)
-        lng = sum(coord["lng"] for coord in coordinates) / len(coordinates)
-
-        return lat, lng
-
-    @staticmethod
     def search_restaurants(midpoint, venue_preference):
         """中間地点付近のお店をホットペッパーAPIで検索"""
         if not midpoint or len(midpoint) != 2:
@@ -100,71 +85,6 @@ class VenueService:
             raise RuntimeError(f"HotPepper API レスポンスエラー: {e}")
 
     @staticmethod
-    def recommend_top_venues(shops):
-        """OpenAI APIでお店リストから3つのおすすめを生成"""
-        try:
-            # 店舗情報を確認
-            if not shops or not isinstance(shops, list):
-                raise ValueError("店舗情報が正しく提供されていません。")
-
-            # 店舗情報をまとめる
-            shop_descriptions = []
-            for shop in shops:
-                try:
-                    name = shop.get('name')
-                    genre = shop.get('genre', {}).get('name')
-                    address = shop.get('address')
-
-                    # 必要な情報が欠けている場合、エラーメッセージを表示してスキップ
-                    if not name or not genre or not address:
-                        logger.warning(f"警告: 必要な情報が欠けています: {shop}")
-                        continue  # 情報が欠けている店舗はスキップ
-
-                    shop_descriptions.append(f"店名: {name}, ジャンル: {genre}, 住所: {address}")
-                except Exception as e:
-                    logger.error(f"店舗情報の処理中にエラーが発生しました: {e}")
-                    continue  # エラーが発生した場合はスキップ
-
-            if not shop_descriptions:
-                raise ValueError("有効な店舗情報がありません。")
-
-            # OpenAI APIへのプロンプト
-            prompt = (
-                "以下のお店の中から、最もおすすめの3つを提案してください。\n\n"
-                + "\n".join(
-                    f"{i + 1}. {desc}" for i, desc in enumerate(shop_descriptions)
-                )
-                + "\n\n提案結果:"
-            )
-
-            # OpenAI API呼び出し
-            response = openai.ChatCompletion.create(
-                model="gpt-4",  # または "gpt-3.5-turbo"
-                messages=[
-                    {
-                        "role": "system",
-                        "content": "You are an assistant that recommends the best shops based on user input.",
-                    },
-                    {"role": "user", "content": prompt},
-                ],
-                max_tokens=500,
-                temperature=0.7,
-            )
-
-            # レスポンスのデバッグ出力
-            logger.info(f"OpenAI API Response: {response}")
-
-            if not response.choices or not response.choices[0].message['content'].strip():
-                raise ValueError("OpenAI APIのレスポンスが不正です。")
-
-            # 結果を取得
-            recommendations = response.choices[0].message['content'].strip()
-            return recommendations
-        except Exception as e:
-            logger.error(f"OpenAI APIエラーの詳細: {str(e)}")
-            raise RuntimeError(f"OpenAI APIエラー: {e}")
-
-    @staticmethod
     def get_venue_suggestions_for_group(group, shop_atmosphere_preference):
         """グループの最寄り駅を元に中間地点を計算し、店舗を提案する"""
         try:
@@ -177,27 +97,36 @@ class VenueService:
             if not stations:
                 raise ValueError("グループの最寄り駅情報が正しく提供されていません。")
 
-            # 各駅の座標を取得
-            coordinates = [VenueService.get_coordinates(station) for station in stations]
-
-            # 中間地点を算出
-            midpoint = VenueService.get_midpoint_for_group(stations)
+            # 東京駅の座標を手動で指定
+            midpoint = [35.681236, 139.767125]  # 東京駅の座標
 
             # お店の雰囲気の条件に基づいて検索キーワードを設定
             if shop_atmosphere_preference == "calm":
-                venue_preference = "落ち着いたお店"
+                venue_preference = "居酒屋"  # ここを「居酒屋」に変更
             elif shop_atmosphere_preference == "lively":
-                venue_preference = "わいわいできるお店"
+                venue_preference = "居酒屋"  # こちらも「居酒屋」
             else:
-                venue_preference = "希望なし"  # もし指定がない場合
+                venue_preference = "居酒屋"  # 何も指定されていない場合も居酒屋
 
             # お店を検索
             shops = VenueService.search_restaurants(midpoint, venue_preference)
 
-            # おすすめのお店をOpenAIで取得
-            top_venues = VenueService.recommend_top_venues(shops)
-
-            return top_venues
+            # 検索結果を表示
+            return shops
         except Exception as e:
             logger.error(f"店舗提案中にエラーが発生しました: {e}")
             raise RuntimeError(f"店舗提案中にエラーが発生しました: {e}")
+
+
+# 実行コード部分
+if __name__ == "__main__":
+    group = [
+        type("User", (), {"station": "東京"}),  # 仮のグループ情報
+    ]
+    shop_atmosphere_preference = "居酒屋"  # 居酒屋を探す
+
+    try:
+        top_venues = VenueService.get_venue_suggestions_for_group(group, shop_atmosphere_preference)
+        print("おすすめのお店:", top_venues)
+    except Exception as e:
+        print(f"エラーが発生しました: {e}")
