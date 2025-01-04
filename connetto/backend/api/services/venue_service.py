@@ -151,18 +151,20 @@ class VenueService:
                 temperature=0.7,
             )
 
-            # レスポンスのデバッグ出力
+            # レスポンスを表示（デバッグ用）
             logger.info(f"OpenAI API Response: {response}")
 
-            if not response.choices or not response.choices[0].message['content'].strip():
-                raise ValueError("OpenAI APIのレスポンスが不正です。")
+            # レスポンスの構造が予想通りでない場合に備えて修正
+            choices_content = response['choices'][0]['message']['content'] if 'choices' in response else None
 
-            # 結果を取得
-            recommendations = response.choices[0].message['content'].strip()
-            return recommendations
+            if not choices_content:
+                raise ValueError("OpenAI APIのレスポンスに推奨店舗が含まれていません。")
+
+            return choices_content
         except Exception as e:
             logger.error(f"OpenAI APIエラーの詳細: {str(e)}")
             raise RuntimeError(f"OpenAI APIエラー: {e}")
+
 
     @staticmethod
     def get_venue_suggestions_for_group(group, shop_atmosphere_preference):

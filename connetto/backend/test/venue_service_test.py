@@ -1,132 +1,83 @@
-import os
-import openai
-import requests
-from dotenv import load_dotenv
-import logging
+import unittest
+from unittest.mock import patch, Mock
+from backend.api.services.venue_service import VenueService
 
-# ロギングの設定
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+class TestVenueService(unittest.TestCase):
 
-# .envファイルを読み込む
-load_dotenv()
+    @patch('requests.get')
+    def test_search_izakayas(self, mock_get):
+        """
+        Test the search_restaurants method for fetching izakaya data.
+        """
+        # 東京駅の座標 (緯度: 35.681236, 経度: 139.767125)
+        midpoint = [35.681236, 139.767125]  
+        venue_preference = "居酒屋"  # 居酒屋を指定
 
-class VenueService:
-    GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
-    HOTPEPPER_API_KEY = os.getenv("HOTPEPPER_API_KEY")
-    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-
-    @staticmethod
-    def get_coordinates(station):
-        """最寄り駅から座標を取得"""
-        try:
-            response = requests.get(
-                "https://maps.googleapis.com/maps/api/geocode/json",
-                params={
-                    "address": f"{station}駅",  # 駅名を検索
-                    "key": VenueService.GOOGLE_MAPS_API_KEY,  # APIキー
+        # Mock response from the Hot Pepper API
+        mock_response_data = {
+            "results": [
+                {
+                    "name": "居酒屋A",
+                    "genre": {"name": "居酒屋"},
+                    "address": "東京都千代田区",
                 },
-            )
-            response.raise_for_status()
-            data = response.json()
-
-            # レスポンスの構造をデバッグ
-            logger.info(f"Google Maps API response: {data}")
-
-            if not data.get("results"):
-                raise ValueError(f"座標が見つかりませんでした: {station}駅")
-
-            location = data["results"][0]["geometry"]["location"]
-            return location
-        except Exception as e:
-            logger.error(f"座標取得中にエラーが発生しました: {e}")
-            raise ValueError(f"座標取得中にエラーが発生しました: {e}")
-
-    @staticmethod
-    def search_restaurants(midpoint, venue_preference):
-        """中間地点付近のお店をホットペッパーAPIで検索"""
-        if not midpoint or len(midpoint) != 2:
-            raise ValueError("中間地点(midpoint)は (lat, lng) の形式で指定してください。")
-
-        if not venue_preference or not isinstance(venue_preference, str):
-            raise ValueError("venue_preference は有効なキーワード文字列で指定してください。")
-
-        api_url = "https://webservice.recruit.co.jp/hotpepper/gourmet/v1/"
-        params = {
-            "key": VenueService.HOTPEPPER_API_KEY,
-            "lat": midpoint[0],  # 緯度
-            "lng": midpoint[1],  # 経度
-            "range": 3,  # 検索範囲（3km）
-            "keyword": venue_preference,  # 検索キーワード
-            "format": "json",  # レスポンス形式
+                {
+                    "name": "居酒屋B",
+                    "genre": {"name": "居酒屋"},
+                    "address": "東京都千代田区",
+                },
+                {
+                    "name": "居酒屋C",
+                    "genre": {"name": "居酒屋"},
+                    "address": "東京都千代田区",
+                }
+            ]
         }
 
-        try:
-            response = requests.get(api_url, params=params, timeout=10)
-            response.raise_for_status()
-            data = response.json()
+        # Configure mock behavior
+        mock_get.return_value = Mock(status_code=200, json=Mock(return_value=mock_response_data))
 
-            # レスポンスデータの確認
-            logger.info(f"HotPepper API response: {data}")
+        # Call the method to test
+        result = VenueService.search_restaurants(midpoint, venue_preference)
 
-            # APIレスポンスの検証
-            if not data.get("results"):
-                raise ValueError("店舗情報が見つかりませんでした。")
+        # Assert that the results match expectations
+        self.assertEqual(len(result), 3)
+        self.assertEqual(result[0]['name'], "居酒屋A")
+        self.assertEqual(result[1]['name'], "居酒屋B")
+        self.assertEqual(result[2]['name'], "居酒屋C")
+        mock_get.assert_called_once()  # Ensure the API call was made once
 
-            return data["results"]  # ここはリストのままでOK
-        except requests.exceptions.Timeout:
-            logger.error("HotPepper API リクエストがタイムアウトしました。")
-            raise RuntimeError("HotPepper API リクエストがタイムアウトしました。")
-        except requests.exceptions.RequestException as e:
-            logger.error(f"HotPepper API リクエストエラー: {e}")
-            raise RuntimeError(f"HotPepper API リクエストエラー: {e}")
-        except ValueError as e:
-            logger.error(f"HotPepper API レスポンスエラー: {e}")
-            raise RuntimeError(f"HotPepper API レスポンスエラー: {e}")
+    @patch('openai.ChatCompletion.create')
+    def test_recommend_top_venues(self, mock_openai):
+        """
+        Test the recommend_top_venues method for recommending top venues.
+        """
+        # Mock response from OpenAI API
+        mock_openai.return_value = {
+            "choices": [
+                {
+                    "message": {
+                        "content": "1. 居酒屋A\n2. 居酒屋B\n3. 居酒屋C"
+                    }
+                }
+            ]
+        }
 
-    @staticmethod
-    def get_venue_suggestions_for_group(group, shop_atmosphere_preference):
-        """グループの最寄り駅を元に中間地点を計算し、店舗を提案する"""
-        try:
-            # グループの最寄り駅情報を取得
-            if not group or not isinstance(group, list):
-                raise ValueError("グループ情報が正しく提供されていません。")
+        # Venue list to recommend from
+        shops = [
+            {"name": "居酒屋A", "genre": {"name": "居酒屋"}, "address": "東京都千代田区"},
+            {"name": "居酒屋B", "genre": {"name": "居酒屋"}, "address": "東京都千代田区"},
+            {"name": "居酒屋C", "genre": {"name": "居酒屋"}, "address": "東京都千代田区"}
+        ]
 
-            stations = [user.station for user in group if hasattr(user, 'station')]  # 各ユーザーの最寄り駅をリストに
+        # Call the method to test
+        recommendations = VenueService.recommend_top_venues(shops)
 
-            if not stations:
-                raise ValueError("グループの最寄り駅情報が正しく提供されていません。")
+        # Assert that all expected recommendations are included
+        self.assertIn("居酒屋A", recommendations)
+        self.assertIn("居酒屋B", recommendations)
+        self.assertIn("居酒屋C", recommendations)
+        mock_openai.assert_called_once()  # Ensure OpenAI API was called once
 
-            # 東京駅の座標を手動で指定
-            midpoint = [35.681236, 139.767125]  # 東京駅の座標
-
-            # お店の雰囲気の条件に基づいて検索キーワードを設定
-            if shop_atmosphere_preference == "calm":
-                venue_preference = "居酒屋"  # ここを「居酒屋」に変更
-            elif shop_atmosphere_preference == "lively":
-                venue_preference = "居酒屋"  # こちらも「居酒屋」
-            else:
-                venue_preference = "居酒屋"  # 何も指定されていない場合も居酒屋
-
-            # お店を検索
-            shops = VenueService.search_restaurants(midpoint, venue_preference)
-
-            # 検索結果を表示
-            return shops
-        except Exception as e:
-            logger.error(f"店舗提案中にエラーが発生しました: {e}")
-            raise RuntimeError(f"店舗提案中にエラーが発生しました: {e}")
-
-
-# 実行コード部分
-if __name__ == "__main__":
-    group = [
-        type("User", (), {"station": "東京"}),  # 仮のグループ情報
-    ]
-    shop_atmosphere_preference = "居酒屋"  # 居酒屋を探す
-
-    try:
-        top_venues = VenueService.get_venue_suggestions_for_group(group, shop_atmosphere_preference)
-        print("おすすめのお店:", top_venues)
-    except Exception as e:
-        print(f"エラーが発生しました: {e}")
+if __name__ == '__main__':
+    unittest.main()
