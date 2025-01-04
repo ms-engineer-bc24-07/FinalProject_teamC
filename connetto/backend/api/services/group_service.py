@@ -3,6 +3,7 @@ from collections import defaultdict
 from datetime import datetime
 from django.db.models import Q
 from django.conf import settings
+from django.contrib.auth.models import User
 from api.models.group_member_model import GroupMember
 from api.models.group_model import Group
 from api.models.user_profile_model import UserProfile
@@ -221,26 +222,56 @@ def save_groups_and_members(groups):
             meeting_location = f"{midpoint[0]}, {midpoint[1]}"  # 緯度, 経度で保存
         except Exception as e:
             print(f"[ERROR] 中間地点の計算に失敗: {e}")
-            meeting_location = "横浜"
+            meeting_location = "35.681236, 139.767125"
 
-        leader = select_random_leader(users, excluded_leaders)
+        leader_profile = select_random_leader(users, excluded_leaders)
+
+        leader_user = User.objects.get(username=leader_profile.username)
 
         group_obj = Group.objects.create(
             meeting_date=meeting_date,
             meeting_location=meeting_location,
-            leader=leader
+            leader=leader_user
         )
 
-        for user in users:
-            is_leader = (user == leader)
+        for user_profile in users:
+            try:
+                user = User.objects.get(username=user_profile.username)
+            except User.DoesNotExist:
+                print(f"[ERROR] User not found for username: {user_profile.username}")
+                continue
+            
+            # 全メンバーに通知を送信
+            is_leader = (user == leader_profile)
             GroupMember.objects.create(group=group_obj, user=user, is_leader=is_leader)
 
-        for user in users:
+        for user_profile in users:
+            try:
+                user = User.objects.get(username=user_profile.username)  # User を取得
+            except User.DoesNotExist:
+                print(f"[ERROR] User not found for username: {user_profile.username}")
+                continue
             Notification.objects.create(
                 user=user,
-                title="【開催決定通知】",
-                body=f"グループが決まりました！\n日時: {meeting_date}\n場所: 仮の場所",
+                title="【開催決定】",
+                body=(
+                    "希望日での開催が決定しました。\n"
+                    "詳細は開催予定のページよりご確認ください。\n"
+                    "お店については幹事より予約でき次第、追ってご連絡させて頂きます。"
+                ),
                 notification_type=NotificationType.EVENT_DECISION,
+            )
+
+            # 幹事のみに通知を送信
+            Notification.objects.create(
+                user=leader_user,
+                title="【幹事決定通知】",
+                body=(
+                    "おめでとうございます！幹事に選出されました。\n"
+                    "お店を３つ提案させていただきます。24時間以内に予約をお願いします。\n"
+                    "ご予約後、予約完了報告ボタンより、予約店舗をお知らせください。"
+                ),
+                notification_type=NotificationType.LEADER_DECISION,
             )
 
         group_info = {
