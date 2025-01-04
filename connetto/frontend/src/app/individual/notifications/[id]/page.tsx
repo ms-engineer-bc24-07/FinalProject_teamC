@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import api from "@/utils/api"; 
+import PrimaryButton from "@/components/common/PrimaryButton/PrimaryButton";
 
 type Notification = {
     id: number;
@@ -15,6 +16,7 @@ type Notification = {
 };
 
 export default function NotificationDetailPage() {
+    const router = useRouter();
     const params = useParams(); 
     const notificationId = Number(params.id);
     const [notification, setNotification] = useState<Notification | null>(null);
@@ -75,16 +77,42 @@ export default function NotificationDetailPage() {
 
     return (
         <div>
-            <h1>{notification.title}</h1>
-            <p>{notification.body}</p>
-            <p>{new Date(notification.created_at).toLocaleString("ja-JP", {
-                year: "numeric",
-                month: "2-digit",
-                day: "2-digit",
-                hour: "2-digit",
-                minute: "2-digit",
-            })}</p>
+            <h1
+                style={{
+                    fontSize: "24px",
+                    fontWeight: "bold",
+                    textAlign: "left",
+                    marginBottom: "10px",
+                    marginTop: "20px",
+                }}
+            >
+                {notification.title}
+            </h1>
+            <hr
+                style={{
+                    border: "none",
+                    borderTop: "2px solid #ddd",
+                    margin: "15px 0",
+                }}
+            />
+            <p style={{ fontSize: "16px", lineHeight: "1.6", color: "#333", marginBottom: "15px" }}>
+                {notification.body}
+            </p>
+            <p  style={{ fontSize: "14px", color: "#666", textAlign: "right", marginBottom: "20px" }}>
+                {new Date(notification.created_at).toLocaleString("ja-JP", {
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                })}
+            </p>
             {renderNotificationDetails()}
+            <div style={{ marginTop: "20px" }}>
+                <PrimaryButton onClick={() => router.push("/individual/notifications")}>
+                    閉じる
+                </PrimaryButton>
+            </div>
         </div>
     );
 }

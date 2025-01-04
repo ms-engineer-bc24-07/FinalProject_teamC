@@ -10,6 +10,7 @@ from rest_framework.exceptions import AuthenticationFailed
 from django.contrib.auth.models import User
 from connetto_backend.firebase import verify_firebase_token  # Firebaseトークン検証関数をインポート
 from django.utils import timezone
+from django.db.models import Q
 
 class FirebaseAuthentication(BaseAuthentication):
     def authenticate(self, request):
@@ -67,18 +68,27 @@ class ParticipationView(APIView):
 
     def get(self, request, *args, **kwargs):
         try:
+            print("GETリクエストを受信しました")
+            print("認証済みユーザー:", request.user.username)
+
             pk = kwargs.get('pk')
+            print("取得するPK:", pk)
 
             if pk:
                 participation = Participation.objects.get(id=pk, user=request.user)
+                print("参加情報を取得しました:", participation)
                 serializer = ParticipationSerializer(participation)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             
             today = timezone.now().date()
+            print("今日の日付:", today)
+
             participations = Participation.objects.filter(
-                desired_dates__gte=today, 
-                user=request.user  
+                Q(user=request.user) &
+                Q(desired_dates__icontains=str(today))  
             ).order_by('-created_at')
+
+            print("フィルタリング後の参加情報:", participations)
             serializer = ParticipationSerializer(participations, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
