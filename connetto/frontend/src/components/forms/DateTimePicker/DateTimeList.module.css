@@ -8,7 +8,7 @@
 }
 
 .addButton {
-    background-color: var(--pink-color);
+    background-color: var(--pink-color) !important;
     color: white; 
     padding: 8px 16px; 
     border-radius: 8px; 

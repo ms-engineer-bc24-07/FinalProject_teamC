@@ -3,7 +3,7 @@ import React from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import styles from "./EntryCard.module.css";
-import { formatDate, formatTime } from "@/utils/dateUtils";
+import { formatDateTime, formatDate, formatTime } from "@/utils/dateUtils";
 
 type Participation = {
     id: number;
@@ -94,30 +94,25 @@ export default function EntryCard({ participation , onDeleteSuccess}: EntryCardP
 
     return (
         <div className={styles.entryCard}>
-            <div className={styles.entryDetails}>
-                {/* 日時の表示 */}
-                <div className={styles.entrySection}>
-                    <h3 className={styles.sectionTitle}>日時</h3>
-                    <ul className={styles.dateList}>
-                        {participation.desired_dates.map((date, index) => (
-                            <li key={index}>
-                                {formatDate(date)} {formatTime(date)}
-                            </li>
-                        ))}
-                    </ul>
+            <div className={styles.row}>
+                <div className={styles.label}>日時</div>
+                <div className={styles.value}>
+                    {participation.desired_dates.map((date, index) => (
+                        <div key={index}>
+                            {formatDateTime(date)}
+                        </div>
+                    ))}
                 </div>
-
-                {/* 希望条件の表示 */}
-                <div className={styles.entrySection}>
-                    <h3 className={styles.sectionTitle}>希望条件</h3>
-                    <ul className={styles.conditionList}>
-                        {Object.entries(fieldLabels).map(([key, label]) => (
-                            <li key={key}>
-                                {label} ：{" "}
-                                {formatConditionValue(key, participation[key as keyof Participation])}
-                            </li>
-                        ))}
-                    </ul>
+            </div>
+            <div className={styles.row}>
+                <div className={styles.label}>希望条件</div>
+                <div className={styles.value}>
+                    {Object.entries(fieldLabels).map(([key, label]) => (
+                        <li key={key}>
+                            {label} ：{" "}
+                            {formatConditionValue(key, participation[key as keyof Participation])}
+                        </li>
+                    ))}
                 </div>
             </div>
 

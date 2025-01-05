@@ -80,18 +80,12 @@ class ParticipationView(APIView):
                 serializer = ParticipationSerializer(participation)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             
-            today = timezone.now().date()
-            print("今日の日付:", today)
-
-            participations = Participation.objects.filter(
-                Q(user=request.user) &
-                Q(desired_dates__icontains=str(today))  
-            ).order_by('-created_at')
-
+            participations = Participation.objects.filter(user=request.user).order_by('-created_at')
             print("フィルタリング後の参加情報:", participations)
+
             serializer = ParticipationSerializer(participations, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
-
+        
         except Participation.DoesNotExist:
             return Response({"detail": "指定されたデータが存在しません。"}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:

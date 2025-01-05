@@ -13,6 +13,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
+import LogoutButton from "../../common/LogoutButton/LogoutButton";
 import { usePathname, useRouter } from "next/navigation";
 import styles from "./DrawerAppBar.module.css";
 
@@ -28,6 +29,7 @@ const navItems = [
     { name: "参加履歴", path: "/individual/events?tab=1" },
     { name: "通知", path: "/individual/notifications" },
     { name: "アカウント設定", path: "/individual/settings" },
+    { name: "ログアウト", path: "/" },
 ];
 
 export default function DrawerAppBar(props: Props) {
@@ -111,6 +113,7 @@ export default function DrawerAppBar(props: Props) {
                     {item.name}
                 </Button>
                 ))}
+                <LogoutButton />
             </Box>
             </Toolbar>
         </AppBar>

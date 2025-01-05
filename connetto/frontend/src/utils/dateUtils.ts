@@ -1,3 +1,22 @@
+/**
+ * UTCの日付をそのままフォーマットする関数（タイムゾーン変換を避ける）
+ * @param dateString ISO 8601形式のUTC日時
+ * @returns 日本時間でフォーマット済みの文字列（元のデータそのまま表示）
+ */
+export function formatDateTime(dateString: string): string {
+    const date = new Date(dateString); // この時点でUTCとして解釈される
+
+    const year = date.getUTCFullYear();
+    const month = date.getUTCMonth() + 1; // 月は0から始まるため+1
+    const day = date.getUTCDate();
+    const weekday = ["日", "月", "火", "水", "木", "金", "土"][date.getUTCDay()];
+
+    const hours = String(date.getUTCHours()).padStart(2, "0");
+    const minutes = String(date.getUTCMinutes()).padStart(2, "0");
+
+    return `${year}年${month}月${day}日（${weekday}） ${hours}:${minutes}`;
+}
+
 export function generateDateOptions(): string[] {
     const today = new Date();
     const start = new Date(today.setDate(today.getDate() + 4)); 
