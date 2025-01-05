@@ -109,10 +109,13 @@ def group_users_by_date_and_preference():
                 break
         
         if remaining_users:
-            final_groups.append({"meeting_date": meeting_date, "users": list(remaining_users)})
-            print(f"[DEBUG] Final group formed with remaining users: {list(remaining_users)}")
-            remaining_users.clear()
-
+            if len(remaining_users) < 3:
+                # 残りの人数が3人未満の場合、組み分けしない
+                print(f"[INFO] 残りのユーザーが {len(remaining_users)} 人のため、今回はグループ分けしません。: {remaining_users}")
+            else:
+                # 3人以上の場合、新しいグループとして作成
+                final_groups.append({"meeting_date": meeting_date, "users": list(remaining_users)})
+                print(f"[DEBUG] 新しいグループを作成しました: {remaining_users}")
 
     return final_groups
 
@@ -173,12 +176,15 @@ def select_random_leader(users, excluded_leaders):
     """
     グループ内からランダムに幹事を選出。
     """
-    potential_leaders = [user for user in users if user not in excluded_leaders]
+
+    users_as_user_objects = [User.objects.get(username=user.username) for user in users]
+
+    potential_leaders = [user for user in users_as_user_objects if user not in excluded_leaders]
 
     if not potential_leaders:
         print("[INFO] 候補者がいないため除外リストをリセットします。")
         excluded_leaders.clear()
-        potential_leaders = users
+        potential_leaders = users_as_user_objects
 
     if not potential_leaders:
         raise ValueError("[ERROR] 候補となるユーザーが存在しません。")
@@ -237,42 +243,40 @@ def save_groups_and_members(groups):
         for user_profile in users:
             try:
                 user = User.objects.get(username=user_profile.username)
-            except User.DoesNotExist:
-                print(f"[ERROR] User not found for username: {user_profile.username}")
-                continue
+                is_leader = (user == leader_user)
+
+                GroupMember.objects.create(group=group_obj, user=user, is_leader=is_leader)
+
+                Notification.objects.create(
+                    user=user,
+                    title="【開催決定】",
+                    body=(
+                        "希望日での開催が決定しました。\n"
+                        "詳細は開催予定のページよりご確認ください。\n"
+                        "お店については幹事より予約でき次第、追ってご連絡させて頂きます。"
+                    ),
+                    notification_type=NotificationType.EVENT_DECISION,
+                )
+
+                # 幹事のみに通知を送信
+                if is_leader:
+                    Notification.objects.create(
+                        user=leader_user,
+                        title="【幹事決定】",
+                        body=(
+                            "おめでとうございます！幹事に選出されました。\n"
+                            "お店を３つ提案させていただきます。24時間以内に予約をお願いします。\n"
+                            "ご予約後、予約完了報告ボタンより、予約店舗をお知らせください。"
+                        ),
+                        notification_type=NotificationType.MANAGER_DECISION,
+                    )
             
-            # 全メンバーに通知を送信
-            is_leader = (user == leader_profile)
-            GroupMember.objects.create(group=group_obj, user=user, is_leader=is_leader)
-
-        for user_profile in users:
-            try:
-                user = User.objects.get(username=user_profile.username)  # User を取得
             except User.DoesNotExist:
                 print(f"[ERROR] User not found for username: {user_profile.username}")
                 continue
-            Notification.objects.create(
-                user=user,
-                title="【開催決定】",
-                body=(
-                    "希望日での開催が決定しました。\n"
-                    "詳細は開催予定のページよりご確認ください。\n"
-                    "お店については幹事より予約でき次第、追ってご連絡させて頂きます。"
-                ),
-                notification_type=NotificationType.EVENT_DECISION,
-            )
+            except Exception as e:
+                print(f"[ERROR] Failed to process user {user_profile.username}: {e}")
 
-            # 幹事のみに通知を送信
-            Notification.objects.create(
-                user=leader_user,
-                title="【幹事決定通知】",
-                body=(
-                    "おめでとうございます！幹事に選出されました。\n"
-                    "お店を３つ提案させていただきます。24時間以内に予約をお願いします。\n"
-                    "ご予約後、予約完了報告ボタンより、予約店舗をお知らせください。"
-                ),
-                notification_type=NotificationType.LEADER_DECISION,
-            )
 
         group_info = {
             "identifier": group_obj.identifier,
