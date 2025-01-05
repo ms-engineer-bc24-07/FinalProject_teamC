@@ -1,144 +1,304 @@
-# backend/api/services/group_service.py
-# グループ分けのロジック
-
 import random
 from collections import defaultdict
-
-from api.models.party_preference_model import (  # PartyPreferenceモデルをインポート
-    PartyPreference,
-)
-from api.models.user_model import User  # Userモデルをインポート
-from django.conf import settings  # settings.py のスコア設定をインポート
-
+from datetime import datetime
+from django.db.models import Q
+from django.conf import settings
+from django.contrib.auth.models import User
+from api.models.group_member_model import GroupMember
+from api.models.group_model import Group
+from api.models.user_profile_model import UserProfile
+from api.models.participation_model import Participation
+from api.models.notification_model import Notification, NotificationType
+from api.services.venue_service import VenueService
 
 def group_users_by_date_and_preference():
     """
-    ユーザーの飲み会希望日を基にグループ分けする関数。
+    ユーザーの希望日時を基にグループ分けし、希望条件ごとのスコアリングを行う。
     """
-    # ユーザーの飲み会希望日を基にグループ分け
-    user = User.objects.all()  # User モデルから直接ユーザー情報を取得
-    preferences = PartyPreference.objects.all()
+    grouped_by_date = defaultdict(list)
 
-    # 希望日ごとにユーザーをグループ化、企業ごとのサブグループを作成
-    grouped_by_date_and_company = defaultdict(lambda: defaultdict(list))
+    # 対象の日付を指定
+    target_date = "2025-02-07T19:00:00Z"
+    participations = Participation.objects.filter(desired_dates__contains=[target_date])
 
-    for preference in preferences:
-        user = preference.user
-        # ユーザーが所属する企業と希望日でグループ化
-        grouped_by_date_and_company[preference.desired_date][user.company].append(
-            preference
-        )
+    print(f"[DEBUG] 取得した参加者の総数: {len(participations)}")
 
-    # グループ分けの途中経過を表示
-    print("\n==== 希望日と企業ごとのグループ分け ====")
-    for date, company_groups in grouped_by_date_and_company.items():
-        print(f"\n希望日: {date}")
-        for company, preferences in company_groups.items():
-            print(f"  企業: {company}")
-            for preference in preferences:
-                print(f"    ユーザー: {preference.user.name}")
+    # 希望日時ごとに参加者をグループ化
+    grouped_by_date[target_date] = list(participations)
 
-    # 希望日ごとに、スコアリングしてグループを作成
+    # デバッグ: grouped_by_date の内容を確認
+    print(f"[DEBUG] Grouped by date: {grouped_by_date}")
+
     final_groups = []
 
-    for date, company_groups in grouped_by_date_and_company.items():
-        scored_users = []
+    for meeting_date, participations in grouped_by_date.items():
+        # ペアのスコアを計算
+        pair_scores = []
+        for i, participation1 in enumerate(participations):
+            user1 = participation1.user
+            for j, participation2 in enumerate(participations):
+                if i >= j:
+                    continue
+                user2 = participation2.user
+                score = calculate_pair_score(participation1, participation2, user1, user2)
+                
+                # 希望条件がないペアもスコア0でリストに含める
+                if score is None:
+                    score = 0
+                
+                # ペアとスコアが正しい形式であるかを確認
+                if user1 and user2:
+                    if isinstance(score, (int, float)):
+                        pair_scores.append(((user1, user2), score))
+                    else:
+                        print(f"[ERROR] Invalid score type: {score} (Type: {type(score)})")
+                else:
+                    print(f"[ERROR] Invalid users: user1={user1}, user2={user2}")
 
-        for company, preferences in company_groups.items():
-            for preference in preferences:
-                user = preference.user
-                score = 0
+        # スコア順に並べ替え
+        pair_scores.sort(key=lambda x: x[1], reverse=True)
 
-            # 希望条件に基づいてスコアリング
+        
+        # デバッグログ: pair_scores の内容を確認
+        print(f"[DEBUG] Pair scores: {pair_scores}")
 
-            # 性別制限スコアリング
-            if (
-                preference.gender_restriction == "same_gender"
-                and user.gender == preference.user.gender
-            ):
-                score += settings.SCORING_WEIGHTS["性別制限"]["同性"]
+        if not pair_scores:
+            print("[DEBUG] No valid pair_scores. Skipping this date.")
+            continue
+
+        # ユーザーリストを初期化
+        remaining_users = set(p.user for p in participations)
+
+        while remaining_users:
+            # 残りユーザー数に基づいてグループサイズを設定
+            group_size = min(len(remaining_users), random.choice([3, 4, 5, 6]))
+
+            current_group = set()
+
+            print(f"[DEBUG] Processing pair_scores: {pair_scores}")
+
+            for pair_score in pair_scores:
+                print(f"[DEBUG] Pair score entry: {pair_score}")
+                # pair_score のフォーマットが正しいかチェック
+                if not isinstance(pair_score, tuple) or len(pair_score) != 2:
+                    print(f"[ERROR] Invalid pair_score: {pair_score}")
+                    continue
+
+                pair, score = pair_score
+                if len(pair) != 2 or not pair[0] or not pair[1]:
+                    print(f"[ERROR] Invalid pair: {pair}")
+                    continue
+
+                if pair[0] in remaining_users and pair[1] in remaining_users:
+                    current_group.update(pair)
+
+                if len(current_group) >= group_size:  # 指定サイズに達したら終了
+                    break
+
+            # 残ったユーザーをすべて追加して終了
+            if len(current_group) < group_size and len(remaining_users) <= group_size:
+                current_group.update(remaining_users)
+
+            # グループが作成された場合、保存する
+            if len(current_group) >= 3:  # 最低3人のグループ
+                final_groups.append({"meeting_date": meeting_date, "users": list(current_group)})
+                remaining_users -= current_group
+                print(f"[DEBUG] Created group: {list(current_group)}")
             else:
-                score += settings.SCORING_WEIGHTS["性別制限"]["希望なし"]
-
-            # 年代制限スコアリング
-            if (
-                preference.age_restriction == "same_age"
-                and user.birth_year == preference.user.birth_year
-            ):
-                score += settings.SCORING_WEIGHTS["年代制限"]["同年代"]
+                print(f"[DEBUG] Could not form a group of size {group_size}. Remaining users: {remaining_users}")
+                break
+        
+        if remaining_users:
+            if len(remaining_users) < 3:
+                # 残りの人数が3人未満の場合、組み分けしない
+                print(f"[INFO] 残りのユーザーが {len(remaining_users)} 人のため、今回はグループ分けしません。: {remaining_users}")
             else:
-                score += settings.SCORING_WEIGHTS["年代制限"]["希望なし"]
-
-            # 部署制限スコアリング
-            if (
-                preference.department_restriction == "same_department"
-                and user.department == preference.user.department
-            ):
-                score += settings.SCORING_WEIGHTS["部署希望"]["所属部署内希望"]
-            else:
-                score += settings.SCORING_WEIGHTS["部署希望"]["希望なし"]
-
-            # 他の条件も追加可能...
-            scored_users.append((user, score))
-
-        # スコア順にソートし、3～6人のグループを作成
-        scored_users.sort(key=lambda x: x[1], reverse=True)
-        selected_group = scored_users[: random.randint(3, 6)]  # 3～6人をランダムで選出
-        final_groups.append(
-            [user[0] for user in selected_group]
-        )  # ユーザーのみをグループに追加
-
-        # スコアリング結果と選出されたグループを表示
-        print("\n==== スコアリング結果 ====")
-        for user, score in scored_users:
-            print(f"ユーザー: {user.name}, スコア: {score}")
-
-        print("\n==== 選出されたグループ ====")
-        for user in selected_group:
-            print(f"  {user[0].name} (スコア: {user[1]})")
+                # 3人以上の場合、新しいグループとして作成
+                final_groups.append({"meeting_date": meeting_date, "users": list(remaining_users)})
+                print(f"[DEBUG] 新しいグループを作成しました: {remaining_users}")
 
     return final_groups
 
 
-def select_random_leader(group, excluded_leaders=[]):
+def calculate_pair_score(participation1, participation2, user1, user2):
+    """
+    2人のユーザーのペアに基づきスコアを計算する。
+    """
+    # UserProfile を取得
+    try:
+        user1_profile = UserProfile.objects.get(username=user1.username)
+        user2_profile = UserProfile.objects.get(username=user2.username)
+    except UserProfile.DoesNotExist:
+        print(f"UserProfileが見つかりません: {user1.username} または {user2.username}")
+        return 0
+    # スコア計算のロジックをここに記述
+    score = 0
+
+    # 性別制限
+    if participation1.gender_restriction == "same_gender" and user1_profile.gender == user2_profile.gender:
+        score += settings.SCORING_WEIGHTS["性別制限"]["同性"]
+    else:
+        score += settings.SCORING_WEIGHTS["性別制限"]["希望なし"]
+
+    # 年代制限
+    age_diff = abs(user1_profile.birth_year - user2_profile.birth_year)
+    if participation1.age_restriction == "same_age" and age_diff <= 2:
+        score += settings.SCORING_WEIGHTS["年代制限"]["同年代"]
+    elif participation1.age_restriction == "broad_age" and age_diff <= 5:
+        score += settings.SCORING_WEIGHTS["年代制限"]["幅広い年代"]
+    else:
+        score += settings.SCORING_WEIGHTS["年代制限"]["希望なし"]
+
+    # 入社年制限
+    if participation1.joining_year_restriction == "exact_match" and user1_profile.join_year == user2_profile.join_year:
+        score += settings.SCORING_WEIGHTS["入社年"]["完全一致"]
+    else:
+        score += settings.SCORING_WEIGHTS["入社年"]["希望なし"]
+
+    # 部署制限
+    if participation1.department_restriction == "same_department" and user1_profile.department == user2_profile.department:
+        score += settings.SCORING_WEIGHTS["部署希望"]["所属部署内希望"]
+    elif participation1.department_restriction == "mixed_departments":
+        score += settings.SCORING_WEIGHTS["部署希望"]["他部署混在"]
+    else:
+        score += settings.SCORING_WEIGHTS["部署希望"]["希望なし"]
+
+    # お店の雰囲気
+    if participation1.atmosphere_preference == participation2.atmosphere_preference:
+        score += settings.SCORING_WEIGHTS["お店の雰囲気"].get(participation1.atmosphere_preference, 0)
+    else:
+        score += settings.SCORING_WEIGHTS["お店の雰囲気"]["希望なし"]
+
+    return score
+
+
+def select_random_leader(users, excluded_leaders):
     """
     グループ内からランダムに幹事を選出。
-    除外リストに全員が含まれる場合、除外ルールをリセットして選出する。
     """
-    # 除外リストに含まれていないユーザーを幹事候補とする
-    potential_leaders = [(user for user in group if user not in excluded_leaders)]
 
-    # 幹事候補がいない場合は除外リストをリセットする
+    users_as_user_objects = [User.objects.get(username=user.username) for user in users]
+
+    potential_leaders = [user for user in users_as_user_objects if user not in excluded_leaders]
+
     if not potential_leaders:
-        print("\n全員が幹事を経験済みのため、除外リストをリセットして再選出します")
-        potential_leaders = group  # 全員を候補に戻す
-        excluded_leaders.clear()  # 除外リストをリセット
+        print("[INFO] 候補者がいないため除外リストをリセットします。")
+        excluded_leaders.clear()
+        potential_leaders = users_as_user_objects
 
-    # 幹事をランダムに選出
-    return random.choice(potential_leaders)
+    if not potential_leaders:
+        raise ValueError("[ERROR] 候補となるユーザーが存在しません。")
+
+    leader = random.choice(potential_leaders)
+    excluded_leaders.append(leader)
+
+    return leader
+
+
+def save_groups_and_members(groups):
+    """
+    グループ分け結果をデータベースに保存し、メンバー情報も保存する。
+    幹事も選定し、通知を送信する。
+    """
+    excluded_leaders = []
+    saved_groups = []
+
+    for group_data in groups:
+        if not isinstance(group_data, dict):
+            print(f"[ERROR] Invalid group_data type: {type(group_data)}. Skipping...")
+            continue
+
+        meeting_date = group_data["meeting_date"]
+        users = UserProfile.objects.filter(username__in=[user.username for user in group_data["users"]])
+
+        if not users:
+            print(f"警告: ユーザーが存在しないグループをスキップします。日時: {meeting_date}")
+            continue
+
+        # 中間地点の座標を計算
+        stations = [user.station for user in users if hasattr(user, 'station') and user.station]
+
+        try:
+            print(f"[DEBUG] Stations: {stations}")
+            coordinates = [VenueService.get_coordinates(station) for station in stations]
+            print(f"[DEBUG] Coordinates: {coordinates}")
+            midpoint = VenueService.calculate_midpoint(
+                [{"lat": lat, "lng": lng} for lat, lng in coordinates]
+            )
+            meeting_location = f"{midpoint[0]}, {midpoint[1]}"  # 緯度, 経度で保存
+        except Exception as e:
+            print(f"[ERROR] 中間地点の計算に失敗: {e}")
+            meeting_location = "35.681236, 139.767125"
+
+        leader_profile = select_random_leader(users, excluded_leaders)
+
+        leader_user = User.objects.get(username=leader_profile.username)
+
+        group_obj = Group.objects.create(
+            meeting_date=meeting_date,
+            meeting_location=meeting_location,
+            leader=leader_user
+        )
+
+        for user_profile in users:
+            try:
+                user = User.objects.get(username=user_profile.username)
+                is_leader = (user == leader_user)
+
+                GroupMember.objects.create(group=group_obj, user=user, is_leader=is_leader)
+
+                Notification.objects.create(
+                    user=user,
+                    title="【開催決定】",
+                    body=(
+                        "希望日での開催が決定しました。\n"
+                        "詳細は開催予定のページよりご確認ください。\n"
+                        "お店については幹事より予約でき次第、追ってご連絡させて頂きます。"
+                    ),
+                    notification_type=NotificationType.EVENT_DECISION,
+                )
+
+                # 幹事のみに通知を送信
+                if is_leader:
+                    Notification.objects.create(
+                        user=leader_user,
+                        title="【幹事決定】",
+                        body=(
+                            "おめでとうございます！幹事に選出されました。\n"
+                            "お店を３つ提案させていただきます。24時間以内に予約をお願いします。\n"
+                            "ご予約後、予約完了報告ボタンより、予約店舗をお知らせください。"
+                        ),
+                        notification_type=NotificationType.MANAGER_DECISION,
+                    )
+            
+            except User.DoesNotExist:
+                print(f"[ERROR] User not found for username: {user_profile.username}")
+                continue
+            except Exception as e:
+                print(f"[ERROR] Failed to process user {user_profile.username}: {e}")
+
+
+        group_info = {
+            "identifier": group_obj.identifier,
+            "meeting_date": group_obj.meeting_date,
+            "meeting_location": group_obj.meeting_location,
+            "number_of_members": len(users),
+            "users": users,
+        }
+        saved_groups.append(group_info)
+
+    return saved_groups
 
 
 def assign_users_to_groups():
     """
-    グループ分けを実行し、幹事を各グループに割り当てる。
+    グループ分けを実行し、幹事を選出して保存する。
     """
-    # グループ分けを実行
     groups = group_users_by_date_and_preference()
+    saved_groups = save_groups_and_members(groups)
 
-    # 幹事選出
-    group_leaders = {}
-    excluded_leaders = []  # 以前選出された幹事を除外
+    # 幹事を抽出
+    leaders = {f"Group_{idx}": group['users'][0] for idx, group in enumerate(groups) if group['users']}
+    
+    return saved_groups, leaders
 
-    for i, group in enumerate(groups):
-        leader = select_random_leader(group, excluded_leaders)
-
-        # 幹事を選出し、結果を格納
-        group_leaders[f"Group {i + 1}"] = leader.name if leader else "No leader"
-
-        # 選出されたリーダーを除外リストに追加
-        if leader:
-            excluded_leaders.append(leader)  # 幹事選出後、履歴に追加
-
-        print(f"グループ {i + 1} の幹事は {leader.name} です")
-
-    return groups, group_leaders

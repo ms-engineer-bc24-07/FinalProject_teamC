@@ -13,6 +13,7 @@ type Notification = {
     body: string;
     created_at: string;
     is_read: boolean;
+    notification_type: string;
 };
 
 export default function NotificationsPage() {
@@ -48,6 +49,7 @@ export default function NotificationsPage() {
                         body={notification.body}
                         timestamp={notification.created_at}
                         isRead={notification.is_read}
+                        type={notification.notification_type}
                         onClick={() => handleCardClick(notification.id)}
                     />
                 ))}
