@@ -13,6 +13,7 @@ import ModalConfirmation from "@/components/forms/ModalConfirmation/ModalConfirm
 import { SelectChangeEvent  } from "@mui/material";
 import { getAuth } from "firebase/auth";
 import { getFirebaseToken } from "@/utils/auth"; 
+import { formatDateTimeUTC } from "@/utils/dateUtils";
 import axios from "axios";
 
 
@@ -200,7 +201,7 @@ export default function AddParticipation() {
                 onClose={handleCloseModal}
                 onConfirm={handleConfirm}
                 data={{
-                dates: dates,
+                dates: dates.map(date => formatDateTimeUTC(date)),
                 conditions: {
                     gender: conditions.gender, 
                     age: conditions.age,

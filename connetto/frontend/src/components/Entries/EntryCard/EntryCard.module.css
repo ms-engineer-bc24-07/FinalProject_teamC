@@ -2,7 +2,7 @@
     margin: 5px;
     padding: 12px 0px 12px 3px;
     border-radius: 3px;
-    background-color: #fff1f4;
+    background-color: #fafafa;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
@@ -13,7 +13,7 @@
 }
 
 .label {
-    background-color:  var(--pink-color);
+    background-color: #e6e6e6;
     padding: 10px 12px;
     font-weight: bold;
     text-align: center;

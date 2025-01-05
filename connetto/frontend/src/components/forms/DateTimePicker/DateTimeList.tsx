@@ -53,7 +53,7 @@ export default function DateTimeList({ onChange, initialDates = [{ date: "", tim
             ))}
             <Button
                 onClick={handleAdd}
-                className={styles.addButton}
+                className={styles.addButton} disableElevation
                 variant="contained"
             >
                 ＋

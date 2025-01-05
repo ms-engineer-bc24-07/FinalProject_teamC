@@ -3,7 +3,7 @@ import React from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import styles from "./EntryCard.module.css";
-import { formatDateTime, formatDate, formatTime } from "@/utils/dateUtils";
+import { formatDateTime } from "@/utils/dateUtils";
 
 type Participation = {
     id: number;

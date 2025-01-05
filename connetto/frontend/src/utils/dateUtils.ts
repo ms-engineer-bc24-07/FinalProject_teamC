@@ -62,3 +62,24 @@ export function formatTime(dateString: string): string {
         minute: "2-digit",
     });
 }
+
+export function formatDateTimeUTC(dateString: string): string {
+    if (!dateString || typeof dateString !== "string") {
+        console.error("Invalid dateString:", dateString);
+        return "Invalid Date";
+    }
+
+    const [datePart, timePart] = dateString.split("T");
+    if (!datePart || !timePart) {
+        console.error("dateString のフォーマットが不正です:", dateString);
+        return "Invalid Date";
+    }
+
+    const [hours, minutes] = timePart.split(":");
+    const utcDate = new Date(dateString);
+
+    // 曜日の取得
+    const weekday = ["日", "月", "火", "水", "木", "金", "土"][utcDate.getUTCDay()];
+
+    return `${datePart.replace(/-/g, "年").replace(/$/, "日")}（${weekday}） ${hours}:${minutes}`;
+}
