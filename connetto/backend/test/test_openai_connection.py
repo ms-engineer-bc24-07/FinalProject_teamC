@@ -5,35 +5,29 @@ from dotenv import load_dotenv
 # .envファイルを読み込む
 load_dotenv()
 
-def test_openai_connection():
-    """
-    OpenAI APIが正常に接続されているかを確認するためのテスト。
-    """
+# APIキーを設定
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
+def test_openai_request():
     try:
-        # APIキーを設定
-        openai.api_key = os.getenv("OPENAI_API_KEY")
+        print("OpenAIリクエストを送信します...")
 
-        # サンプルプロンプト
-        prompt = "こんにちは、OpenAI。接続が正常に行われているか確認するためのテストです。"
-
-        # 新しいインターフェースでリクエストを送信
-        response = openai.chat.completions.create(
-            model="gpt-4",
+        # リクエスト送信
+        response = openai.ChatCompletion.create(
+            model="gpt-4o",
             messages=[
-                {"role": "system", "content": "あなたは親切なアシスタントです。"},
-                {"role": "user", "content": prompt},
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": "こんにちは、接続が正常か確認しています。"},
             ]
         )
 
-        # 応答を表示
-        print("OpenAIからの応答:")
-        print(response["choices"][0]["message"]["content"].strip())
+        print("ChatGPTからの応答:")
+        print(response['choices'][0]['message']['content'])
 
+    except openai.error.OpenAIError as e:
+        print(f"OpenAI APIエラー: {e}")
     except Exception as e:
-        print(f"OpenAI接続エラー: {e}")
+        print(f"その他のエラー: {e}")
 
-# 実行
 if __name__ == "__main__":
-    test_openai_connection()
-
-
+    test_openai_request()

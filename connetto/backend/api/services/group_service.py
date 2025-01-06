@@ -1,4 +1,7 @@
 import random
+import openai
+import os
+from dotenv import load_dotenv
 from collections import defaultdict
 from datetime import datetime
 from django.db.models import Q
@@ -10,6 +13,39 @@ from api.models.user_profile_model import UserProfile
 from api.models.participation_model import Participation
 from api.models.notification_model import Notification, NotificationType
 from api.services.venue_service import VenueService
+from datetime import datetime, timezone
+
+load_dotenv()
+
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
+def get_midpoint_station(stations):
+    """
+    ChatGPTを使用して、複数の駅の中間地点となる駅を取得する関数。
+    """
+    try:
+
+        prompt = (
+        f"以下の駅リストがあります:\n{', '.join(stations)}\n"
+        f"これらの駅の飲み会に最適な中間地点となる駅を1つ提案してください。"
+        f"答えは駅名のみで、余分な説明は不要です。"
+    )
+        response = openai.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": prompt},
+            ]
+        )
+
+        message_content = response.choices[0].message.content
+
+        return message_content
+
+
+    except Exception as e:  # すべてのエラーをキャッチ
+        print(f"エラーが発生しました: {e}")
+    
 
 def group_users_by_date_and_preference():
     """
@@ -18,7 +54,7 @@ def group_users_by_date_and_preference():
     grouped_by_date = defaultdict(list)
 
     # 対象の日付を指定
-    target_date = "2025-02-07T19:00:00Z"
+    target_date = "2025-01-31T19:00:00Z"
     participations = Participation.objects.filter(desired_dates__contains=[target_date])
 
     print(f"[DEBUG] 取得した参加者の総数: {len(participations)}")
@@ -27,7 +63,7 @@ def group_users_by_date_and_preference():
     grouped_by_date[target_date] = list(participations)
 
     # デバッグ: grouped_by_date の内容を確認
-    print(f"[DEBUG] Grouped by date: {grouped_by_date}")
+    #print(f"[DEBUG] Grouped by date: {grouped_by_date}")
 
     final_groups = []
 
@@ -60,7 +96,7 @@ def group_users_by_date_and_preference():
 
         
         # デバッグログ: pair_scores の内容を確認
-        print(f"[DEBUG] Pair scores: {pair_scores}")
+        #print(f"[DEBUG] Pair scores: {pair_scores}")
 
         if not pair_scores:
             print("[DEBUG] No valid pair_scores. Skipping this date.")
@@ -78,21 +114,21 @@ def group_users_by_date_and_preference():
             print(f"[DEBUG] Processing pair_scores: {pair_scores}")
 
             for pair_score in pair_scores:
-                print(f"[DEBUG] Pair score entry: {pair_score}")
+                #print(f"[DEBUG] Pair score entry: {pair_score}")
                 # pair_score のフォーマットが正しいかチェック
                 if not isinstance(pair_score, tuple) or len(pair_score) != 2:
-                    print(f"[ERROR] Invalid pair_score: {pair_score}")
+                    #print(f"[ERROR] Invalid pair_score: {pair_score}")
                     continue
 
                 pair, score = pair_score
                 if len(pair) != 2 or not pair[0] or not pair[1]:
-                    print(f"[ERROR] Invalid pair: {pair}")
+                    #print(f"[ERROR] Invalid pair: {pair}")
                     continue
 
                 if pair[0] in remaining_users and pair[1] in remaining_users:
                     current_group.update(pair)
 
-                if len(current_group) >= group_size:  # 指定サイズに達したら終了
+                if len(current_group) >= group_size:  
                     break
 
             # 残ったユーザーをすべて追加して終了
@@ -100,12 +136,12 @@ def group_users_by_date_and_preference():
                 current_group.update(remaining_users)
 
             # グループが作成された場合、保存する
-            if len(current_group) >= 3:  # 最低3人のグループ
+            if len(current_group) >= 3: 
                 final_groups.append({"meeting_date": meeting_date, "users": list(current_group)})
                 remaining_users -= current_group
-                print(f"[DEBUG] Created group: {list(current_group)}")
+                #print(f"[DEBUG] Created group: {list(current_group)}")
             else:
-                print(f"[DEBUG] Could not form a group of size {group_size}. Remaining users: {remaining_users}")
+                #print(f"[DEBUG] Could not form a group of size {group_size}. Remaining users: {remaining_users}")
                 break
         
         if remaining_users:
@@ -115,7 +151,7 @@ def group_users_by_date_and_preference():
             else:
                 # 3人以上の場合、新しいグループとして作成
                 final_groups.append({"meeting_date": meeting_date, "users": list(remaining_users)})
-                print(f"[DEBUG] 新しいグループを作成しました: {remaining_users}")
+                #print(f"[DEBUG] 新しいグループを作成しました: {remaining_users}")
 
     return final_groups
 
@@ -131,7 +167,7 @@ def calculate_pair_score(participation1, participation2, user1, user2):
     except UserProfile.DoesNotExist:
         print(f"UserProfileが見つかりません: {user1.username} または {user2.username}")
         return 0
-    # スコア計算のロジックをここに記述
+
     score = 0
 
     # 性別制限
@@ -218,17 +254,9 @@ def save_groups_and_members(groups):
         # 中間地点の座標を計算
         stations = [user.station for user in users if hasattr(user, 'station') and user.station]
 
-        try:
-            print(f"[DEBUG] Stations: {stations}")
-            coordinates = [VenueService.get_coordinates(station) for station in stations]
-            print(f"[DEBUG] Coordinates: {coordinates}")
-            midpoint = VenueService.calculate_midpoint(
-                [{"lat": lat, "lng": lng} for lat, lng in coordinates]
-            )
-            meeting_location = f"{midpoint[0]}, {midpoint[1]}"  # 緯度, 経度で保存
-        except Exception as e:
-            print(f"[ERROR] 中間地点の計算に失敗: {e}")
-            meeting_location = "35.681236, 139.767125"
+        meeting_location = get_midpoint_station(stations)
+        if not meeting_location:
+            meeting_location = "失敗のため（仮）川崎"
 
         leader_profile = select_random_leader(users, excluded_leaders)
 

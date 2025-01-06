@@ -36,7 +36,7 @@ def create_dummy_group_and_notifications():
 
     # 仮メンバーを追加
     dummy_users = []
-    for i in range(2, 5):  # 仮に3人のメンバーを追加
+    for i in range(2, 5): 
         fake_user = User.objects.create(
             username=f"dummy_user_{i}",
             email=f"dummy{i}@example.com"

@@ -9,9 +9,9 @@ def create_dummy_data():
     genders = ["male", "female"]
     departments = ["営業部", "人事部", "開発部", "マーケティング部"]
     stations = ["東京", "大井町", "横浜", "品川", "大崎"]
-    desired_dates = ["2025-02-07T19:00:00Z"]
+    desired_dates = ["2025-01-31T19:00:00Z"]
 
-    for i in range(20):  # 30件作成
+    for i in range(4):  # 30件作成
         # ユニークなユーザー名を作成
         username = f"dummy_user_{i}_{datetime.now().timestamp()}"
         # ユーザー作成

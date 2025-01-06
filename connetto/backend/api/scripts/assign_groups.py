@@ -9,32 +9,34 @@ def run_group_assignment():
         return
     
     # デバッグ: groups と leaders の型と中身を確認
-    print(f"[DEBUG] groups の型: {type(groups)}")
-    print(f"[DEBUG] groups の中身: {groups}")
-    print(f"[DEBUG] leaders の型: {type(leaders)}")
-    print(f"[DEBUG] leaders の中身: {leaders}")
+    #print(f"[DEBUG] groups の型: {type(groups)}")
+    #print(f"[DEBUG] groups の中身: {groups}")
+    #print(f"[DEBUG] leaders の型: {type(leaders)}")
+    #print(f"[DEBUG] leaders の中身: {leaders}")
 
     print("\n==== 結果 ====")
     for group in groups:
-        print(f"\nグループ日時: {group['meeting_date']}")
-        print("メンバー:")
-        for user in group['users']:
+        meeting_location = group.get("meeting_location", "場所未設定")
+        print(f"グループ日時: {group['meeting_date']}, 場所: {meeting_location}")
+        #print(f"\nグループ日時: {group['meeting_date']}")
+        #print("メンバー:")
+        #for user in group['users']:
             # デバッグ: user の型と内容を確認
-            print(f"[DEBUG] user の型: {type(user)}")
-            print(f"[DEBUG] user の中身: {user}")
+            #print(f"[DEBUG] user の型: {type(user)}")
+            #print(f"[DEBUG] user の中身: {user}")
             
             # メンバー情報の表示
-            print(f"- {user.username}")
+            #print(f"- {user.username}")
     
-    print("\nリーダー:")
-    for group_name, leader in leaders.items():
+    #print("\nリーダー:")
+    #for group_name, leader in leaders.items():
         # デバッグ: leader の型と内容を確認
-        print(f"[DEBUG] group_name: {group_name}")
-        print(f"[DEBUG] leader の型: {type(leader)}")
-        print(f"[DEBUG] leader の中身: {leader}")
+        #print(f"[DEBUG] group_name: {group_name}")
+        #print(f"[DEBUG] leader の型: {type(leader)}")
+        #print(f"[DEBUG] leader の中身: {leader}")
 
         # リーダー情報の表示
-        print(f"{group_name}: {leader}")
+        #print(f"{group_name}: {leader}")
     
 
 # 関数を呼び出し
