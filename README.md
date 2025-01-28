@@ -7,7 +7,7 @@
 ## 画面イメージ
 | トップ画面 |　ログイン画面 |　ホーム画面 |
 | ---- | ---- | ---- |
-| <img src="https://github.com/user-attachments/assets/4d9c142f-e676-454d-8713-583af39e5b5b" width="290">| <img src="https://github.com/user-attachments/assets/4d9c142f-e676-454d-8713-583af39e5b5b" width="290"> | <img src="https://github.com/user-attachments/assets/4d9c142f-e676-454d-8713-583af39e5b5b" width="290"> |
+| <img src="https://github.com/user-attachments/assets/4d9c142f-e676-454d-8713-583af39e5b5b" width="290">| <img src="https://github.com/user-attachments/assets/3ea7200c-f1dc-4b66-823f-bb47f5afd93c" width="290"> | <img src="https://github.com/user-attachments/assets/4d9c142f-e676-454d-8713-583af39e5b5b" width="290"> |
 | ログイン前のトップ画面 | アドレスとパスワードでの認証 | ホーム画面で日時/希望条件を登録できます |
 
 | 通知BOX画面 |　登録内容確認画面 |　一覧画面 |
