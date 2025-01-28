@@ -1,60 +1,39 @@
 # Connetto
+社内のコミュニケーションの場を自動で設定してくれるアプリ<br>
+法人が福利厚生ツールとして契約。<br>
+利用者は、飲み会など参加希望の日時や希望条件を登録するだけで、飲み会の場所や日時を自動で提案・決定します。<br>
+これにより、幹事の負担を大幅に軽減し、飲み会を迅速にセットアップできます。
 
-## 開発環境ガイド
+## 画面イメージ
+| トップ画面 |　ログイン画面 |　ホーム画面 |
+| ---- | ---- | ---- |
+| ![トップ画面]()| ![ログイン画面]() | ![ホーム画面]() |
+| ログイン前のトップ画面 | メールアドレスとパスワードでの認証機能を実装 | ホーム画面で日時、希望条件を登録できます |
 
-### バックエンドの設定 (Black, isort, Flake8)
+| 通知BOX画面 |　登録内容確認画面 |　一覧画面 |
+| ---- | ---- | ---- |
+| ![通知画面]()| ![内容確認画面]() | ![一覧画面]() |
+| 通知が届く画面で通知のバッチも表示 | 希望登録した日時の変更や削除が可能 | 開催が決定した会の一覧を表示 |
 
-- **フォーマッター**:
-    - `Black`: コードフォーマットを自動化し、PEP 8 に準拠したスタイルを維持します。
-    - `isort`: インポートの順序を整理し、コードの可読性を向上させます。
-- **リンター**:
-    - `Flake8`: コードスタイルのチェックや潜在的なバグを検出します。
-- **コード規約**: PEP 8 に準拠
-- **設定ファイル**:
-    - `pyproject.toml`: Black と isort の設定
-    - `.flake8`: Flake8 の設定
 
----
+<br />
 
-### フロントエンドの設定 (Prettier, ESLint)
+## 使用技術
+| Category          | Technology Stack                                     |
+| ----------------- | --------------------------------------------------   |
+| Frontend          | TypeScript, Next.js                                  |
+| Backend           | Python, Django                                       |
+| Database          | PostgreSQL                                           |
+| Environment setup | Docker                                               |
+| Design            | Figma                                                |
+| API               | OpenAIAPI, GooglemapAPI, HotpepperAPI                |
+| Authentication    | Firebase                                             |
+| etc.              | ESLint, Prettier, GitHub                             |
 
-- **フォーマッター**:
-    - `Prettier`: HTML/CSS/JavaScript/TypeScript などのコード整形を自動化します。
-- **リンター**:
-    - `ESLint`: JavaScript や TypeScript の静的解析を行い、コード品質を向上させます。
-- **コード規約**: ESLint のルールを使用し、Prettier と統一
-- **設定ファイル**:
-    - `.prettierrc`: Prettier の設定
-    - `.eslintrc.json`: ESLint の設定
+<br />
 
----
+## 機能一覧
 
-### Git Hooks の設定 (Pre-commit Hooks)
-
-このプロジェクトでは [pre-commit](https://pre-commit.com/) を使用して、フォーマットやチェックを自動化しています。Gitにコミットする前に、以下のツールが実行されます:
-
-- Black
-- isort
-- Flake8
-
-`pre-commit` をインストールし、設定を有効化してください。
-
-```bash
-pip install pre-commit
-pre-commit install
-
-```
-
-Pre-commitの設定は `.pre-commit-config.yaml` に記載されています。
-
----
-
-### 参考リンク
-
-- [Black Documentation](https://black.readthedocs.io/)
-- [isort Documentation](https://pycqa.github.io/isort/)
-- [Flake8 Documentation](https://flake8.pycqa.org/)
-- [Prettier Documentation](https://prettier.io/)
-- [ESLint Documentation](https://eslint.org/)
+<br />
 
 ---
