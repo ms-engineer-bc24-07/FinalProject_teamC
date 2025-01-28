@@ -7,12 +7,12 @@
 ## 画面イメージ
 | トップ画面 |　ログイン画面 |　ホーム画面 |
 | ---- | ---- | ---- |
-| <img src="https://github.com/user-attachments/assets/4d9c142f-e676-454d-8713-583af39e5b5b" width="290">| <img src="https://github.com/user-attachments/assets/3ea7200c-f1dc-4b66-823f-bb47f5afd93c" width="290"> | <img src="https://github.com/user-attachments/assets/4d9c142f-e676-454d-8713-583af39e5b5b" width="290"> |
+| <img src="https://github.com/user-attachments/assets/4d9c142f-e676-454d-8713-583af39e5b5b" width="290">| <img src="https://github.com/user-attachments/assets/3ea7200c-f1dc-4b66-823f-bb47f5afd93c" width="290"> | <img src="https://github.com/user-attachments/assets/f2b74edc-e165-430a-806e-704bf0e1210c" width="290"> |
 | ログイン前のトップ画面 | アドレスとパスワードでの認証 | ホーム画面で日時/希望条件を登録できます |
 
 | 通知BOX画面 |　登録内容確認画面 |　一覧画面 |
 | ---- | ---- | ---- |
-| <img src="https://github.com/user-attachments/assets/4d9c142f-e676-454d-8713-583af39e5b5b" width="290">| <img src="https://github.com/user-attachments/assets/4d9c142f-e676-454d-8713-583af39e5b5b" width="290"> | <img src="https://github.com/user-attachments/assets/4d9c142f-e676-454d-8713-583af39e5b5b" width="290"> |
+| <img src="https://github.com/user-attachments/assets/dce9fde9-5345-4294-85e2-128e787f5059" width="290">| <img src="https://github.com/user-attachments/assets/07579c29-e126-4414-a7b0-1346148a2670" width="290"> | <img src="https://github.com/user-attachments/assets/7b84c65a-a1fc-4e11-81b9-5523dc7c8e70" width="290"> |
 | 通知が届く画面で通知のバッチも表示 | 希望登録した日時の変更や削除が可能 | 開催が決定した会の一覧を表示 |
 
 
