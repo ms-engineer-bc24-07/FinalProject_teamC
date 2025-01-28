@@ -7,12 +7,12 @@
 ## 画面イメージ
 | トップ画面 |　ログイン画面 |　ホーム画面 |
 | ---- | ---- | ---- |
-| <img src="https://github.com/user-attachments/assets/4d9c142f-e676-454d-8713-583af39e5b5b" width="250">| ![ログイン画面]() | ![ホーム画面]() |
-| ログイン前のトップ画面 | メールアドレスとパスワードでの認証機能を実装 | ホーム画面で日時、希望条件を登録できます |
+| <img src="https://github.com/user-attachments/assets/4d9c142f-e676-454d-8713-583af39e5b5b" width="290">| <img src="https://github.com/user-attachments/assets/4d9c142f-e676-454d-8713-583af39e5b5b" width="290"> | <img src="https://github.com/user-attachments/assets/4d9c142f-e676-454d-8713-583af39e5b5b" width="290"> |
+| ログイン前のトップ画面 | アドレスとパスワードでの認証 | ホーム画面で日時/希望条件を登録できます |
 
 | 通知BOX画面 |　登録内容確認画面 |　一覧画面 |
 | ---- | ---- | ---- |
-| ![通知画面]()| ![内容確認画面]() | ![一覧画面]() |
+| <img src="https://github.com/user-attachments/assets/4d9c142f-e676-454d-8713-583af39e5b5b" width="290">| <img src="https://github.com/user-attachments/assets/4d9c142f-e676-454d-8713-583af39e5b5b" width="290"> | <img src="https://github.com/user-attachments/assets/4d9c142f-e676-454d-8713-583af39e5b5b" width="290"> |
 | 通知が届く画面で通知のバッチも表示 | 希望登録した日時の変更や削除が可能 | 開催が決定した会の一覧を表示 |
 
 
